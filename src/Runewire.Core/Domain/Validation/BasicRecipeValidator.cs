@@ -8,8 +8,19 @@ namespace Runewire.Core.Domain.Validation;
 /// This is the default validator for local experiments.
 /// Additional policy layers can wrap or replace this implementation.
 /// </summary>
-public sealed class BasicRecipeValidator : IRecipeValidator
+/// <remarks>
+/// Creates a new validator.
+///
+/// <param name="techniqueExists">
+/// Optional callback that indicates whether a given injection technique
+/// name is known/registered. If not supplied, all non-empty technique
+/// names are treated as acceptable.
+/// </param>
+/// </remarks>
+public sealed class BasicRecipeValidator(Func<string, bool>? techniqueExists = null) : IRecipeValidator
 {
+    private readonly Func<string, bool> _techniqueExists = techniqueExists ?? (_ => true);
+
     public RecipeValidationResult Validate(RunewireRecipe recipe)
     {
         ArgumentNullException.ThrowIfNull(recipe);
@@ -40,8 +51,7 @@ public sealed class BasicRecipeValidator : IRecipeValidator
         }
     }
 
-    private static void ValidatePayloadPath(RunewireRecipe recipe, List<RecipeValidationError> errors
-    )
+    private static void ValidatePayloadPath(RunewireRecipe recipe, List<RecipeValidationError> errors)
     {
         if (string.IsNullOrWhiteSpace(recipe.PayloadPath))
         {
@@ -49,11 +59,20 @@ public sealed class BasicRecipeValidator : IRecipeValidator
         }
     }
 
-    private static void ValidateTechnique(RunewireRecipe recipe, List<RecipeValidationError> errors)
+    private void ValidateTechnique(RunewireRecipe recipe, List<RecipeValidationError> errors)
     {
-        if (string.IsNullOrWhiteSpace(recipe.Technique.Name))
+        string name = recipe.Technique.Name;
+
+        if (string.IsNullOrWhiteSpace(name))
         {
             errors.Add(new RecipeValidationError("TECHNIQUE_NAME_REQUIRED", "Injection technique name is required."));
+            return;
+        }
+
+        // If a registry function was provided, enforce that the technique is actually known.
+        if (!_techniqueExists(name))
+        {
+            errors.Add(new RecipeValidationError("TECHNIQUE_UNKNOWN", $"Injection technique '{name}' is not registered."));
         }
     }
 

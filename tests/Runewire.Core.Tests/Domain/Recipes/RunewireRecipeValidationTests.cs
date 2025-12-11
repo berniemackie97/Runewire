@@ -83,7 +83,10 @@ public class RunewireRecipeValidationTests
     public void Missing_technique_name_fails_validation()
     {
         // Setup
-        RunewireRecipe recipe = CreateValidRecipe() with { Technique = new InjectionTechnique("  ") };
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Technique = new InjectionTechnique("  ")
+        };
         BasicRecipeValidator validator = new();
 
         // Run
@@ -98,7 +101,10 @@ public class RunewireRecipeValidationTests
     public void Process_by_id_requires_positive_pid()
     {
         // Setup
-        RunewireRecipe recipe = CreateValidRecipe() with { Target = RecipeTarget.ForProcessId(0) };
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Target = RecipeTarget.ForProcessId(0)
+        };
         BasicRecipeValidator validator = new();
 
         // Run
@@ -113,7 +119,10 @@ public class RunewireRecipeValidationTests
     public void Process_by_name_requires_non_empty_name()
     {
         // Setup
-        RunewireRecipe recipe = CreateValidRecipe() with { Target = RecipeTarget.ForProcessName("   ") };
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Target = RecipeTarget.ForProcessName("   ")
+        };
         BasicRecipeValidator validator = new();
 
         // Run
@@ -140,6 +149,29 @@ public class RunewireRecipeValidationTests
 
         // Assert
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.Code == "SAFETY_KERNEL_DRIVER_CONSENT_REQUIRED");
+        Assert.Contains(
+            result.Errors,
+            e => e.Code == "SAFETY_KERNEL_DRIVER_CONSENT_REQUIRED"
+        );
+    }
+
+    [Fact]
+    public void Unknown_technique_fails_when_registry_reports_it_missing()
+    {
+        // Setup: technique name that our fake "registry" will reject.
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Technique = new InjectionTechnique("TotallyFakeTechnique")
+        };
+
+        // Registry delegate that says "no technique is known".
+        BasicRecipeValidator validator = new(_ => false);
+
+        // Run
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "TECHNIQUE_UNKNOWN");
     }
 }
