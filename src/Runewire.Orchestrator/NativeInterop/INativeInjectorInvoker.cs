@@ -13,11 +13,10 @@ internal interface INativeInjectorInvoker
 }
 
 /// <summary>
-/// Default invoker that calls the P/Invoke layer.
+/// Default invoker that calls the P/Invoke layer. direct tests use fakes
 /// </summary>
-[ExcludeFromCodeCoverage] // exercised indirectly; direct tests use fakes
+[ExcludeFromCodeCoverage]
 internal sealed class NativeInjectorInvoker : INativeInjectorInvoker
 {
-    public int Inject(in RwInjectionRequest request, out RwInjectionResult result) =>
-        NativeMethods.RwInject(in request, out result);
+    public int Inject(in RwInjectionRequest request, out RwInjectionResult result) => NativeMethods.RwInject(in request, out result);
 }

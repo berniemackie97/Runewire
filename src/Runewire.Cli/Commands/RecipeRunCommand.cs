@@ -17,6 +17,7 @@ public static class RecipeRunCommand
     /// <summary>
     /// Creates the 'run' command:
     ///   runewire run <recipe.yaml>
+    ///   runewire run --native <recipe.yaml>
     /// </summary>
     public static Command Create()
     {
@@ -25,17 +26,32 @@ public static class RecipeRunCommand
             Description = "Path to the recipe YAML file to execute.",
         };
 
+        // IMPORTANT:
+        // Your System.CommandLine version's Option<T> ctors are touchy.
+        // We avoid all overload ambiguity by:
+        //   - Using a single string name
+        //   - Setting Description via property
+        //
+        // This guarantees "--native" is parsed as the option name and
+        // we don't accidentally treat descriptions as aliases.
+        Option<bool> nativeOption = new("--native")
+        {
+            Description = "Use the native Runewire.Injector engine instead of the dry-run engine.",
+        };
+
         Command command = new(
             name: CommandName,
             description: "Execute a Runewire recipe (dry-run injection engine by default)."
         )
         {
             recipeArgument,
+            nativeOption,
         };
 
         command.SetAction(parseResult =>
         {
             FileInfo? recipeFile = parseResult.GetValue(recipeArgument);
+            bool useNativeEngine = parseResult.GetValue(nativeOption);
 
             if (recipeFile is null)
             {
@@ -43,7 +59,7 @@ public static class RecipeRunCommand
                 return 2;
             }
 
-            return Handle(recipeFile);
+            return Handle(recipeFile, useNativeEngine);
         });
 
         return command;
@@ -56,9 +72,9 @@ public static class RecipeRunCommand
     /// 0 = injection succeeded
     /// 1 = validation errors (semantic)
     /// 2 = load/structural error (I/O, YAML parse)
-    /// 3 = injection failed (engine reported failure)
+    /// 3 = injection failed (engine reported failure or unexpected error)
     /// </summary>
-    private static int Handle(FileInfo recipeFile)
+    private static int Handle(FileInfo recipeFile, bool useNativeEngine)
     {
         if (!recipeFile.Exists)
         {
@@ -68,12 +84,22 @@ public static class RecipeRunCommand
 
         BasicRecipeValidator validator = new();
         YamlRecipeLoader loader = new(validator);
-        DryRunInjectionEngine engine = new();
+
+        IInjectionEngine engine = useNativeEngine
+            ? new NativeInjectionEngine()
+            : new DryRunInjectionEngine();
+
         RecipeExecutor executor = new(engine);
 
         try
         {
             RunewireRecipe recipe = loader.LoadFromFile(recipeFile.FullName);
+
+            if (useNativeEngine)
+            {
+                // This string is asserted in EngineSelectionTests.
+                WriteDetail($"Using native injection engine for recipe '{recipe.Name}'.");
+            }
 
             InjectionResult result = executor.ExecuteAsync(recipe).GetAwaiter().GetResult();
 

@@ -1,0 +1,65 @@
+name: Build, Test, Coverage, Native
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  dotnet-build-test:
+    name: .NET build, test, coverage
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test with coverage
+        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
+
+      - name: Upload test results and coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-test-results
+          path: TestResults
+
+  native-build:
+    name: Native injector build (CMake + Ninja)
+    runs-on: windows-latest
+    needs: dotnet-build-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Ensure MSVC toolchain environment is available for CMake/Ninja
+      - name: Setup MSVC dev environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure CMake (Debug)
+        run: cmake -S native -B build/native -G "Ninja" -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build Runewire.Injector (Debug)
+        run: cmake --build build/native --config Debug
+
+      - name: Upload native build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: runewire-native-debug
+          path: |
+            build/native/Runewire.Injector/*.dll
+            build/native/Runewire.Injector/*.pdb
+            build/native/Runewire.Injector/*.lib
+            build/native/Runewire.Injector/*.a

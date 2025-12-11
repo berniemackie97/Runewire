@@ -1,7 +1,7 @@
 using Runewire.Core.Domain.Recipes;
 using Runewire.Orchestrator.Orchestration;
 
-namespace Runewire.Core.Tests.Orchestration;
+namespace Runewire.Orchestrator.Tests.Orchestration;
 
 public class RecipeExecutorTests
 {

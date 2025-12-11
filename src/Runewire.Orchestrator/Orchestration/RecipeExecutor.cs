@@ -6,24 +6,16 @@ namespace Runewire.Orchestrator.Orchestration;
 /// High-level orchestrator that executes validated recipes by delegating
 /// to the configured <see cref="IInjectionEngine"/>.
 /// </summary>
-public sealed class RecipeExecutor
+public sealed class RecipeExecutor(IInjectionEngine injectionEngine)
 {
-    private readonly IInjectionEngine _injectionEngine;
-
-    public RecipeExecutor(IInjectionEngine injectionEngine)
-    {
-        _injectionEngine = injectionEngine ?? throw new ArgumentNullException(nameof(injectionEngine));
-    }
+    private readonly IInjectionEngine _injectionEngine = injectionEngine ?? throw new ArgumentNullException(nameof(injectionEngine));
 
     /// <summary>
     /// Execute a validated recipe using the injection engine.
     /// </summary>
     public Task<InjectionResult> ExecuteAsync(RunewireRecipe recipe, CancellationToken cancellationToken = default)
     {
-        if (recipe is null)
-        {
-            throw new ArgumentNullException(nameof(recipe));
-        }
+        ArgumentNullException.ThrowIfNull(recipe);
 
         InjectionRequest request = MapToRequest(recipe);
         return _injectionEngine.ExecuteAsync(request, cancellationToken);

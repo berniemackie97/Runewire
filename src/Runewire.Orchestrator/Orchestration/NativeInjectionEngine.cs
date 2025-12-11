@@ -1,27 +1,20 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Runewire.Core.Domain.Recipes;
 using Runewire.Orchestrator.NativeInterop;
 
 namespace Runewire.Orchestrator.Orchestration;
 
 /// <summary>
-/// Injection engine that delegates to the native Runewire.Injector runtime
-/// via the rw_inject C ABI.
+/// Injection engine that delegates to the native Runewire.
 /// </summary>
 public sealed class NativeInjectionEngine : IInjectionEngine
 {
     private readonly INativeInjectorInvoker _invoker;
 
     /// <summary>
-    /// Creates a native injection engine that uses the default
-    /// Runewire.Injector DLL invoker.
+    /// Creates a native injection engine that uses the default DLL invoker.
     /// </summary>
-    public NativeInjectionEngine()
-        : this(new NativeInjectorInvoker()) { }
+    public NativeInjectionEngine() : this(new NativeInjectorInvoker()) { }
 
     /// <summary>
     /// Internal constructor for tests and advanced scenarios where a custom
@@ -32,21 +25,16 @@ public sealed class NativeInjectionEngine : IInjectionEngine
         _invoker = invoker ?? throw new ArgumentNullException(nameof(invoker));
     }
 
-    public Task<InjectionResult> ExecuteAsync(
-        InjectionRequest request,
-        CancellationToken cancellationToken = default
+    public Task<InjectionResult> ExecuteAsync(InjectionRequest request, CancellationToken cancellationToken = default
     )
     {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var started = DateTimeOffset.UtcNow;
+        DateTimeOffset started = DateTimeOffset.UtcNow;
 
-        var allocations = new List<IntPtr>(capacity: 6);
+        List<nint> allocations = new(capacity: 6);
         RwInjectionRequest nativeRequest;
 
         try
@@ -62,13 +50,11 @@ public sealed class NativeInjectionEngine : IInjectionEngine
             }
             catch (Exception ex)
             {
-                var completed = DateTimeOffset.UtcNow;
-                return Task.FromResult(
-                    InjectionResult.Failed("NATIVE_INVOKE_FAILED", ex.Message, started, completed)
-                );
+                DateTimeOffset completed = DateTimeOffset.UtcNow;
+                return Task.FromResult(InjectionResult.Failed("NATIVE_INVOKE_FAILED", ex.Message, started, completed));
             }
 
-            var managedResult = MapFromNativeResult(status, nativeResult, started);
+            InjectionResult managedResult = MapFromNativeResult(status, nativeResult, started);
             return Task.FromResult(managedResult);
         }
         finally
@@ -83,15 +69,9 @@ public sealed class NativeInjectionEngine : IInjectionEngine
         }
     }
 
-    private static RwInjectionRequest MapToNativeRequest(
-        InjectionRequest request,
-        List<IntPtr> allocations
-    )
+    private static RwInjectionRequest MapToNativeRequest(InjectionRequest request, List<IntPtr> allocations)
     {
-        if (allocations is null)
-        {
-            throw new ArgumentNullException(nameof(allocations));
-        }
+        ArgumentNullException.ThrowIfNull(allocations);
 
         IntPtr Alloc(string? value)
         {
@@ -121,10 +101,7 @@ public sealed class NativeInjectionEngine : IInjectionEngine
 
     private static RwTarget MapTarget(RecipeTarget target, Func<string?, IntPtr> alloc)
     {
-        if (alloc is null)
-        {
-            throw new ArgumentNullException(nameof(alloc));
-        }
+        ArgumentNullException.ThrowIfNull(alloc);
 
         return target.Kind switch
         {
@@ -138,7 +115,7 @@ public sealed class NativeInjectionEngine : IInjectionEngine
             RecipeTargetKind.ProcessById => new RwTarget
             {
                 Kind = RwTargetKind.ProcessId,
-                Pid = (uint)target.ProcessId,
+                Pid = (uint)(target.ProcessId ?? throw new ArgumentNullException(nameof(target))),
                 ProcessName = IntPtr.Zero,
             },
 
@@ -149,41 +126,22 @@ public sealed class NativeInjectionEngine : IInjectionEngine
                 ProcessName = alloc(target.ProcessName),
             },
 
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(target),
-                target.Kind,
-                "Unsupported recipe target kind."
-            ),
+            _ => throw new ArgumentOutOfRangeException(nameof(target), target.Kind, "Unsupported recipe target kind."),
         };
     }
 
-    private static InjectionResult MapFromNativeResult(
-        int status,
-        RwInjectionResult nativeResult,
-        DateTimeOffset started
-    )
+    private static InjectionResult MapFromNativeResult(int status, RwInjectionResult nativeResult, DateTimeOffset started)
     {
         bool success = status == 0 && nativeResult.Success != 0;
 
-        string? errorCode =
-            nativeResult.ErrorCode != IntPtr.Zero
-                ? Marshal.PtrToStringAnsi(nativeResult.ErrorCode)
-                : null;
+        string? errorCode = nativeResult.ErrorCode != IntPtr.Zero ? Marshal.PtrToStringAnsi(nativeResult.ErrorCode) : null;
 
-        string? errorMessage =
-            nativeResult.ErrorMessage != IntPtr.Zero
-                ? Marshal.PtrToStringAnsi(nativeResult.ErrorMessage)
-                : null;
+        string? errorMessage = nativeResult.ErrorMessage != IntPtr.Zero ? Marshal.PtrToStringAnsi(nativeResult.ErrorMessage) : null;
 
         DateTimeOffset startedAt = TryFromUnixMilliseconds(nativeResult.StartedAtUtcMs, started);
-        DateTimeOffset completedAt = TryFromUnixMilliseconds(
-            nativeResult.CompletedAtUtcMs,
-            DateTimeOffset.UtcNow
-        );
+        DateTimeOffset completedAt = TryFromUnixMilliseconds(nativeResult.CompletedAtUtcMs, DateTimeOffset.UtcNow);
 
-        return success
-            ? InjectionResult.Succeeded(startedAt, completedAt)
-            : InjectionResult.Failed(errorCode, errorMessage, startedAt, completedAt);
+        return success ? InjectionResult.Succeeded(startedAt, completedAt) : InjectionResult.Failed(errorCode, errorMessage, startedAt, completedAt);
     }
 
     private static DateTimeOffset TryFromUnixMilliseconds(ulong value, DateTimeOffset fallback)

@@ -1,0 +1,2092 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<coverage line-rate="0.7909999999999999" branch-rate="0.4827" version="1.9" timestamp="1765429440" lines-covered="424" lines-valid="536" branches-covered="84" branches-valid="174">
+  <sources>
+    <source>D:\Development\repos\dotNet\Runewire\src\</source>
+  </sources>
+  <packages>
+    <package name="Runewire.Cli" line-rate="0.8495" branch-rate="0.675" complexity="54">
+      <classes>
+        <class name="Runewire.Cli.Program" filename="Runewire.Cli\Program.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="Main" signature="(System.String[])" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="9" hits="8" branch="False" />
+                <line number="10" hits="8" branch="False" />
+                <line number="12" hits="8" branch="False" />
+                <line number="13" hits="8" branch="False" />
+                <line number="14" hits="8" branch="False" />
+              </lines>
+            </method>
+            <method name="BuildRootCommand" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="17" hits="8" branch="False" />
+                <line number="18" hits="8" branch="False" />
+                <line number="22" hits="8" branch="False" />
+                <line number="23" hits="8" branch="False" />
+                <line number="25" hits="8" branch="False" />
+                <line number="26" hits="8" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="9" hits="8" branch="False" />
+            <line number="10" hits="8" branch="False" />
+            <line number="12" hits="8" branch="False" />
+            <line number="13" hits="8" branch="False" />
+            <line number="14" hits="8" branch="False" />
+            <line number="17" hits="8" branch="False" />
+            <line number="18" hits="8" branch="False" />
+            <line number="22" hits="8" branch="False" />
+            <line number="23" hits="8" branch="False" />
+            <line number="25" hits="8" branch="False" />
+            <line number="26" hits="8" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Cli.Infrastructure.DryRunInjectionEngine" filename="Runewire.Cli\Infrastructure\DryRunInjectionEngine.cs" line-rate="0.8965000000000001" branch-rate="0.5" complexity="10">
+          <methods>
+            <method name="ExecuteAsync" signature="(Runewire.Orchestrator.Orchestration.InjectionRequest,System.Threading.CancellationToken)" line-rate="1" branch-rate="0.6666" complexity="6">
+              <lines>
+                <line number="18" hits="1" branch="False" />
+                <line number="19" hits="1" branch="False" />
+                <line number="21" hits="1" branch="False" />
+                <line number="22" hits="1" branch="False" />
+                <line number="23" hits="1" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="62" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="24" hits="1" branch="False" />
+                <line number="25" hits="1" branch="False" />
+                <line number="26" hits="1" branch="False" />
+                <line number="28" hits="1" branch="False" />
+                <line number="29" hits="1" branch="False" />
+                <line number="30" hits="1" branch="False" />
+                <line number="31" hits="1" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="165" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="32" hits="1" branch="False" />
+                <line number="33" hits="1" branch="False" />
+                <line number="34" hits="1" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="201" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="35" hits="1" branch="False" />
+                <line number="36" hits="1" branch="False" />
+                <line number="38" hits="1" branch="False" />
+                <line number="39" hits="1" branch="False" />
+                <line number="40" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="DescribeTarget" signature="(Runewire.Orchestrator.Orchestration.InjectionRequest)" line-rate="0.6666" branch-rate="0.25" complexity="4">
+              <lines>
+                <line number="43" hits="1" branch="False" />
+                <line number="44" hits="1" branch="True" condition-coverage="25% (1/4)">
+                  <conditions>
+                    <condition number="18" type="switch" coverage="25%" />
+                  </conditions>
+                </line>
+                <line number="45" hits="1" branch="False" />
+                <line number="46" hits="0" branch="False" />
+                <line number="47" hits="0" branch="False" />
+                <line number="48" hits="1" branch="False" />
+                <line number="49" hits="0" branch="False" />
+                <line number="50" hits="1" branch="False" />
+                <line number="51" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="18" hits="1" branch="False" />
+            <line number="19" hits="1" branch="False" />
+            <line number="21" hits="1" branch="False" />
+            <line number="22" hits="1" branch="False" />
+            <line number="23" hits="1" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="62" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="24" hits="1" branch="False" />
+            <line number="25" hits="1" branch="False" />
+            <line number="26" hits="1" branch="False" />
+            <line number="28" hits="1" branch="False" />
+            <line number="29" hits="1" branch="False" />
+            <line number="30" hits="1" branch="False" />
+            <line number="31" hits="1" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="165" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="32" hits="1" branch="False" />
+            <line number="33" hits="1" branch="False" />
+            <line number="34" hits="1" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="201" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="35" hits="1" branch="False" />
+            <line number="36" hits="1" branch="False" />
+            <line number="38" hits="1" branch="False" />
+            <line number="39" hits="1" branch="False" />
+            <line number="40" hits="1" branch="False" />
+            <line number="43" hits="1" branch="False" />
+            <line number="44" hits="1" branch="True" condition-coverage="25% (1/4)">
+              <conditions>
+                <condition number="18" type="switch" coverage="25%" />
+              </conditions>
+            </line>
+            <line number="45" hits="1" branch="False" />
+            <line number="46" hits="0" branch="False" />
+            <line number="47" hits="0" branch="False" />
+            <line number="48" hits="1" branch="False" />
+            <line number="49" hits="0" branch="False" />
+            <line number="50" hits="1" branch="False" />
+            <line number="51" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Cli.Commands.RecipeRunCommand" filename="Runewire.Cli\Commands\RecipeRunCommand.cs" line-rate="0.8611" branch-rate="0.8" complexity="26">
+          <methods>
+            <method name="Create" signature="()" line-rate="0.9062" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="23" hits="8" branch="False" />
+                <line number="24" hits="8" branch="False" />
+                <line number="25" hits="8" branch="False" />
+                <line number="26" hits="8" branch="False" />
+                <line number="27" hits="8" branch="False" />
+                <line number="37" hits="8" branch="False" />
+                <line number="38" hits="8" branch="False" />
+                <line number="39" hits="8" branch="False" />
+                <line number="40" hits="8" branch="False" />
+                <line number="42" hits="8" branch="False" />
+                <line number="43" hits="8" branch="False" />
+                <line number="44" hits="8" branch="False" />
+                <line number="45" hits="8" branch="False" />
+                <line number="46" hits="8" branch="False" />
+                <line number="47" hits="8" branch="False" />
+                <line number="48" hits="8" branch="False" />
+                <line number="49" hits="8" branch="False" />
+                <line number="51" hits="8" branch="False" />
+                <line number="52" hits="4" branch="False" />
+                <line number="53" hits="4" branch="False" />
+                <line number="54" hits="4" branch="False" />
+                <line number="55" hits="8" branch="False" />
+                <line number="56" hits="4" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="33" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="57" hits="0" branch="False" />
+                <line number="58" hits="0" branch="False" />
+                <line number="59" hits="0" branch="False" />
+                <line number="60" hits="8" branch="False" />
+                <line number="61" hits="8" branch="False" />
+                <line number="62" hits="4" branch="False" />
+                <line number="63" hits="12" branch="False" />
+                <line number="65" hits="8" branch="False" />
+                <line number="66" hits="8" branch="False" />
+              </lines>
+            </method>
+            <method name="Handle" signature="(System.IO.FileInfo,System.Boolean)" line-rate="0.7818" branch-rate="0.8332999999999999" complexity="18">
+              <lines>
+                <line number="78" hits="4" branch="False" />
+                <line number="79" hits="4" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="14" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="80" hits="1" branch="False" />
+                <line number="81" hits="1" branch="False" />
+                <line number="82" hits="1" branch="False" />
+                <line number="85" hits="3" branch="False" />
+                <line number="86" hits="3" branch="False" />
+                <line number="88" hits="3" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="61" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="89" hits="3" branch="False" />
+                <line number="90" hits="3" branch="False" />
+                <line number="92" hits="3" branch="False" />
+                <line number="95" hits="3" branch="False" />
+                <line number="96" hits="3" branch="False" />
+                <line number="98" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="111" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="99" hits="1" branch="False" />
+                <line number="101" hits="1" branch="False" />
+                <line number="102" hits="1" branch="False" />
+                <line number="104" hits="2" branch="False" />
+                <line number="106" hits="2" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="188" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="107" hits="1" branch="False" />
+                <line number="108" hits="1" branch="False" />
+                <line number="109" hits="1" branch="False" />
+                <line number="112" hits="1" branch="False" />
+                <line number="113" hits="1" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="259" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="114" hits="1" branch="False" />
+                <line number="115" hits="1" branch="False" />
+                <line number="116" hits="1" branch="False" />
+                <line number="118" hits="1" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="305" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="119" hits="1" branch="False" />
+                <line number="120" hits="1" branch="False" />
+                <line number="121" hits="1" branch="False" />
+                <line number="123" hits="1" branch="False" />
+                <line number="125" hits="1" branch="False" />
+                <line number="126" hits="1" branch="False" />
+                <line number="127" hits="1" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="352" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="128" hits="1" branch="False" />
+                <line number="129" hits="1" branch="False" />
+                <line number="130" hits="13" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="440" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="131" hits="5" branch="False" />
+                <line number="132" hits="5" branch="False" />
+                <line number="133" hits="5" branch="False" />
+                <line number="135" hits="1" branch="False" />
+                <line number="138" hits="0" branch="False" />
+                <line number="139" hits="0" branch="False" />
+                <line number="141" hits="0" branch="True" condition-coverage="0% (0/2)">
+                  <conditions>
+                    <condition number="505" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="142" hits="0" branch="False" />
+                <line number="143" hits="0" branch="False" />
+                <line number="144" hits="0" branch="False" />
+                <line number="146" hits="0" branch="False" />
+                <line number="148" hits="0" branch="False" />
+                <line number="149" hits="0" branch="False" />
+                <line number="150" hits="0" branch="False" />
+                <line number="151" hits="0" branch="False" />
+                <line number="152" hits="0" branch="False" />
+                <line number="154" hits="4" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteSuccess" signature="(System.String)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="159" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteError" signature="(System.String)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="161" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteDetail" signature="(System.String)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="164" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteHeader" signature="(System.String,System.ConsoleColor)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="167" hits="2" branch="False" />
+                <line number="168" hits="2" branch="False" />
+                <line number="169" hits="2" branch="False" />
+                <line number="170" hits="2" branch="False" />
+                <line number="171" hits="2" branch="False" />
+                <line number="172" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteBullet" signature="(System.String,System.ConsoleColor)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="175" hits="5" branch="False" />
+                <line number="176" hits="5" branch="False" />
+                <line number="177" hits="5" branch="False" />
+                <line number="178" hits="5" branch="False" />
+                <line number="179" hits="5" branch="False" />
+                <line number="180" hits="5" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteLineWithColor" signature="(System.String,System.ConsoleColor)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="183" hits="5" branch="False" />
+                <line number="184" hits="5" branch="False" />
+                <line number="185" hits="5" branch="False" />
+                <line number="186" hits="5" branch="False" />
+                <line number="187" hits="5" branch="False" />
+                <line number="188" hits="5" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="23" hits="8" branch="False" />
+            <line number="24" hits="8" branch="False" />
+            <line number="25" hits="8" branch="False" />
+            <line number="26" hits="8" branch="False" />
+            <line number="27" hits="8" branch="False" />
+            <line number="37" hits="8" branch="False" />
+            <line number="38" hits="8" branch="False" />
+            <line number="39" hits="8" branch="False" />
+            <line number="40" hits="8" branch="False" />
+            <line number="42" hits="8" branch="False" />
+            <line number="43" hits="8" branch="False" />
+            <line number="44" hits="8" branch="False" />
+            <line number="45" hits="8" branch="False" />
+            <line number="46" hits="8" branch="False" />
+            <line number="47" hits="8" branch="False" />
+            <line number="48" hits="8" branch="False" />
+            <line number="49" hits="8" branch="False" />
+            <line number="51" hits="8" branch="False" />
+            <line number="52" hits="4" branch="False" />
+            <line number="53" hits="4" branch="False" />
+            <line number="54" hits="4" branch="False" />
+            <line number="55" hits="8" branch="False" />
+            <line number="56" hits="4" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="33" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="57" hits="0" branch="False" />
+            <line number="58" hits="0" branch="False" />
+            <line number="59" hits="0" branch="False" />
+            <line number="60" hits="8" branch="False" />
+            <line number="61" hits="8" branch="False" />
+            <line number="62" hits="4" branch="False" />
+            <line number="63" hits="12" branch="False" />
+            <line number="65" hits="8" branch="False" />
+            <line number="66" hits="8" branch="False" />
+            <line number="78" hits="4" branch="False" />
+            <line number="79" hits="4" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="14" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="80" hits="1" branch="False" />
+            <line number="81" hits="1" branch="False" />
+            <line number="82" hits="1" branch="False" />
+            <line number="85" hits="3" branch="False" />
+            <line number="86" hits="3" branch="False" />
+            <line number="88" hits="3" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="61" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="89" hits="3" branch="False" />
+            <line number="90" hits="3" branch="False" />
+            <line number="92" hits="3" branch="False" />
+            <line number="95" hits="3" branch="False" />
+            <line number="96" hits="3" branch="False" />
+            <line number="98" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="111" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="99" hits="1" branch="False" />
+            <line number="101" hits="1" branch="False" />
+            <line number="102" hits="1" branch="False" />
+            <line number="104" hits="2" branch="False" />
+            <line number="106" hits="2" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="188" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="107" hits="1" branch="False" />
+            <line number="108" hits="1" branch="False" />
+            <line number="109" hits="1" branch="False" />
+            <line number="112" hits="1" branch="False" />
+            <line number="113" hits="1" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="259" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="114" hits="1" branch="False" />
+            <line number="115" hits="1" branch="False" />
+            <line number="116" hits="1" branch="False" />
+            <line number="118" hits="1" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="305" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="119" hits="1" branch="False" />
+            <line number="120" hits="1" branch="False" />
+            <line number="121" hits="1" branch="False" />
+            <line number="123" hits="1" branch="False" />
+            <line number="125" hits="1" branch="False" />
+            <line number="126" hits="1" branch="False" />
+            <line number="127" hits="1" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="352" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="128" hits="1" branch="False" />
+            <line number="129" hits="1" branch="False" />
+            <line number="130" hits="13" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="440" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="131" hits="5" branch="False" />
+            <line number="132" hits="5" branch="False" />
+            <line number="133" hits="5" branch="False" />
+            <line number="135" hits="1" branch="False" />
+            <line number="138" hits="0" branch="False" />
+            <line number="139" hits="0" branch="False" />
+            <line number="141" hits="0" branch="True" condition-coverage="0% (0/2)">
+              <conditions>
+                <condition number="505" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="142" hits="0" branch="False" />
+            <line number="143" hits="0" branch="False" />
+            <line number="144" hits="0" branch="False" />
+            <line number="146" hits="0" branch="False" />
+            <line number="148" hits="0" branch="False" />
+            <line number="149" hits="0" branch="False" />
+            <line number="150" hits="0" branch="False" />
+            <line number="151" hits="0" branch="False" />
+            <line number="152" hits="0" branch="False" />
+            <line number="154" hits="4" branch="False" />
+            <line number="159" hits="1" branch="False" />
+            <line number="161" hits="3" branch="False" />
+            <line number="164" hits="1" branch="False" />
+            <line number="167" hits="2" branch="False" />
+            <line number="168" hits="2" branch="False" />
+            <line number="169" hits="2" branch="False" />
+            <line number="170" hits="2" branch="False" />
+            <line number="171" hits="2" branch="False" />
+            <line number="172" hits="2" branch="False" />
+            <line number="175" hits="5" branch="False" />
+            <line number="176" hits="5" branch="False" />
+            <line number="177" hits="5" branch="False" />
+            <line number="178" hits="5" branch="False" />
+            <line number="179" hits="5" branch="False" />
+            <line number="180" hits="5" branch="False" />
+            <line number="183" hits="5" branch="False" />
+            <line number="184" hits="5" branch="False" />
+            <line number="185" hits="5" branch="False" />
+            <line number="186" hits="5" branch="False" />
+            <line number="187" hits="5" branch="False" />
+            <line number="188" hits="5" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Cli.Commands.RecipeValidateCommand" filename="Runewire.Cli\Commands\RecipeValidateCommand.cs" line-rate="0.7948000000000001" branch-rate="0.6" complexity="16">
+          <methods>
+            <method name="Create" signature="()" line-rate="0.8695" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="20" hits="8" branch="False" />
+                <line number="21" hits="8" branch="False" />
+                <line number="22" hits="8" branch="False" />
+                <line number="23" hits="8" branch="False" />
+                <line number="24" hits="8" branch="False" />
+                <line number="26" hits="8" branch="False" />
+                <line number="27" hits="8" branch="False" />
+                <line number="28" hits="8" branch="False" />
+                <line number="29" hits="8" branch="False" />
+                <line number="31" hits="8" branch="False" />
+                <line number="32" hits="3" branch="False" />
+                <line number="33" hits="3" branch="False" />
+                <line number="34" hits="8" branch="False" />
+                <line number="35" hits="3" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="20" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="36" hits="0" branch="False" />
+                <line number="37" hits="0" branch="False" />
+                <line number="38" hits="0" branch="False" />
+                <line number="39" hits="8" branch="False" />
+                <line number="40" hits="8" branch="False" />
+                <line number="41" hits="3" branch="False" />
+                <line number="42" hits="11" branch="False" />
+                <line number="44" hits="8" branch="False" />
+                <line number="45" hits="8" branch="False" />
+              </lines>
+            </method>
+            <method name="Handle" signature="(System.IO.FileInfo)" line-rate="0.647" branch-rate="0.625" complexity="8">
+              <lines>
+                <line number="54" hits="3" branch="False" />
+                <line number="55" hits="3" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="12" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="56" hits="1" branch="False" />
+                <line number="57" hits="1" branch="False" />
+                <line number="58" hits="1" branch="False" />
+                <line number="61" hits="2" branch="False" />
+                <line number="62" hits="2" branch="False" />
+                <line number="65" hits="2" branch="False" />
+                <line number="66" hits="2" branch="False" />
+                <line number="68" hits="1" branch="False" />
+                <line number="69" hits="1" branch="False" />
+                <line number="71" hits="1" branch="False" />
+                <line number="72" hits="1" branch="False" />
+                <line number="73" hits="1" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="124" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="74" hits="1" branch="False" />
+                <line number="75" hits="1" branch="False" />
+                <line number="76" hits="13" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="212" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="77" hits="5" branch="False" />
+                <line number="78" hits="5" branch="False" />
+                <line number="79" hits="5" branch="False" />
+                <line number="81" hits="1" branch="False" />
+                <line number="85" hits="0" branch="False" />
+                <line number="86" hits="0" branch="False" />
+                <line number="88" hits="0" branch="True" condition-coverage="0% (0/2)">
+                  <conditions>
+                    <condition number="276" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="89" hits="0" branch="False" />
+                <line number="90" hits="0" branch="False" />
+                <line number="91" hits="0" branch="False" />
+                <line number="93" hits="0" branch="False" />
+                <line number="95" hits="0" branch="False" />
+                <line number="96" hits="0" branch="False" />
+                <line number="97" hits="0" branch="False" />
+                <line number="98" hits="0" branch="False" />
+                <line number="99" hits="0" branch="False" />
+                <line number="101" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteSuccess" signature="(System.String)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="105" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteError" signature="(System.String)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="107" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteDetail" signature="(System.String)" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="109" hits="0" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteHeader" signature="(System.String,System.ConsoleColor)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="112" hits="1" branch="False" />
+                <line number="113" hits="1" branch="False" />
+                <line number="114" hits="1" branch="False" />
+                <line number="115" hits="1" branch="False" />
+                <line number="116" hits="1" branch="False" />
+                <line number="117" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteBullet" signature="(System.String,System.ConsoleColor)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="120" hits="5" branch="False" />
+                <line number="121" hits="5" branch="False" />
+                <line number="122" hits="5" branch="False" />
+                <line number="123" hits="5" branch="False" />
+                <line number="124" hits="5" branch="False" />
+                <line number="125" hits="5" branch="False" />
+              </lines>
+            </method>
+            <method name="WriteLineWithColor" signature="(System.String,System.ConsoleColor)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="128" hits="2" branch="False" />
+                <line number="129" hits="2" branch="False" />
+                <line number="130" hits="2" branch="False" />
+                <line number="131" hits="2" branch="False" />
+                <line number="132" hits="2" branch="False" />
+                <line number="133" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="20" hits="8" branch="False" />
+            <line number="21" hits="8" branch="False" />
+            <line number="22" hits="8" branch="False" />
+            <line number="23" hits="8" branch="False" />
+            <line number="24" hits="8" branch="False" />
+            <line number="26" hits="8" branch="False" />
+            <line number="27" hits="8" branch="False" />
+            <line number="28" hits="8" branch="False" />
+            <line number="29" hits="8" branch="False" />
+            <line number="31" hits="8" branch="False" />
+            <line number="32" hits="3" branch="False" />
+            <line number="33" hits="3" branch="False" />
+            <line number="34" hits="8" branch="False" />
+            <line number="35" hits="3" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="20" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="36" hits="0" branch="False" />
+            <line number="37" hits="0" branch="False" />
+            <line number="38" hits="0" branch="False" />
+            <line number="39" hits="8" branch="False" />
+            <line number="40" hits="8" branch="False" />
+            <line number="41" hits="3" branch="False" />
+            <line number="42" hits="11" branch="False" />
+            <line number="44" hits="8" branch="False" />
+            <line number="45" hits="8" branch="False" />
+            <line number="54" hits="3" branch="False" />
+            <line number="55" hits="3" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="12" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="56" hits="1" branch="False" />
+            <line number="57" hits="1" branch="False" />
+            <line number="58" hits="1" branch="False" />
+            <line number="61" hits="2" branch="False" />
+            <line number="62" hits="2" branch="False" />
+            <line number="65" hits="2" branch="False" />
+            <line number="66" hits="2" branch="False" />
+            <line number="68" hits="1" branch="False" />
+            <line number="69" hits="1" branch="False" />
+            <line number="71" hits="1" branch="False" />
+            <line number="72" hits="1" branch="False" />
+            <line number="73" hits="1" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="124" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="74" hits="1" branch="False" />
+            <line number="75" hits="1" branch="False" />
+            <line number="76" hits="13" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="212" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="77" hits="5" branch="False" />
+            <line number="78" hits="5" branch="False" />
+            <line number="79" hits="5" branch="False" />
+            <line number="81" hits="1" branch="False" />
+            <line number="85" hits="0" branch="False" />
+            <line number="86" hits="0" branch="False" />
+            <line number="88" hits="0" branch="True" condition-coverage="0% (0/2)">
+              <conditions>
+                <condition number="276" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="89" hits="0" branch="False" />
+            <line number="90" hits="0" branch="False" />
+            <line number="91" hits="0" branch="False" />
+            <line number="93" hits="0" branch="False" />
+            <line number="95" hits="0" branch="False" />
+            <line number="96" hits="0" branch="False" />
+            <line number="97" hits="0" branch="False" />
+            <line number="98" hits="0" branch="False" />
+            <line number="99" hits="0" branch="False" />
+            <line number="101" hits="3" branch="False" />
+            <line number="105" hits="1" branch="False" />
+            <line number="107" hits="1" branch="False" />
+            <line number="109" hits="0" branch="False" />
+            <line number="112" hits="1" branch="False" />
+            <line number="113" hits="1" branch="False" />
+            <line number="114" hits="1" branch="False" />
+            <line number="115" hits="1" branch="False" />
+            <line number="116" hits="1" branch="False" />
+            <line number="117" hits="1" branch="False" />
+            <line number="120" hits="5" branch="False" />
+            <line number="121" hits="5" branch="False" />
+            <line number="122" hits="5" branch="False" />
+            <line number="123" hits="5" branch="False" />
+            <line number="124" hits="5" branch="False" />
+            <line number="125" hits="5" branch="False" />
+            <line number="128" hits="2" branch="False" />
+            <line number="129" hits="2" branch="False" />
+            <line number="130" hits="2" branch="False" />
+            <line number="131" hits="2" branch="False" />
+            <line number="132" hits="2" branch="False" />
+            <line number="133" hits="2" branch="False" />
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="Runewire.Core" line-rate="0.7722" branch-rate="0.45189999999999997" complexity="138">
+      <classes>
+        <class name="Runewire.Core.Infrastructure.Recipes.RecipeDocument" filename="Runewire.Core\Infrastructure\Recipes\RecipeDocument.cs" line-rate="1" branch-rate="1" complexity="6">
+          <methods>
+            <method name="get_Name" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="5" hits="10" branch="False" />
+              </lines>
+            </method>
+            <method name="get_Description" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="6" hits="8" branch="False" />
+              </lines>
+            </method>
+            <method name="get_Target" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="7" hits="20" branch="False" />
+              </lines>
+            </method>
+            <method name="get_Technique" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="8" hits="15" branch="False" />
+              </lines>
+            </method>
+            <method name="get_Payload" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="9" hits="15" branch="False" />
+              </lines>
+            </method>
+            <method name="get_Safety" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="10" hits="10" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="5" hits="10" branch="False" />
+            <line number="6" hits="8" branch="False" />
+            <line number="7" hits="20" branch="False" />
+            <line number="8" hits="15" branch="False" />
+            <line number="9" hits="15" branch="False" />
+            <line number="10" hits="10" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Infrastructure.Recipes.RecipeLoadException" filename="Runewire.Core\Infrastructure\Recipes\RecipeLoadException.cs" line-rate="1" branch-rate="0.5" complexity="3">
+          <methods>
+            <method name="get_ValidationErrors" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="14" hits="6" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(System.String,System.Collections.Generic.IReadOnlyList`1&lt;Runewire.Core.Domain.Validation.RecipeValidationError&gt;,System.Exception)" line-rate="1" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="8" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="14" hits="6" branch="False" />
+            <line number="8" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Infrastructure.Recipes.RecipePayloadDocument" filename="Runewire.Core\Infrastructure\Recipes\RecipePayloadDocument.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name="get_Path" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="5" hits="10" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="5" hits="10" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Infrastructure.Recipes.RecipeSafetyDocument" filename="Runewire.Core\Infrastructure\Recipes\RecipeSafetyDocument.cs" line-rate="1" branch-rate="1" complexity="2">
+          <methods>
+            <method name="get_RequireInteractiveConsent" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="5" hits="15" branch="False" />
+              </lines>
+            </method>
+            <method name="get_AllowKernelDrivers" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="6" hits="10" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="5" hits="15" branch="False" />
+            <line number="6" hits="10" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Infrastructure.Recipes.RecipeTargetDocument" filename="Runewire.Core\Infrastructure\Recipes\RecipeTargetDocument.cs" line-rate="1" branch-rate="1" complexity="3">
+          <methods>
+            <method name="get_Kind" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="5" hits="10" branch="False" />
+              </lines>
+            </method>
+            <method name="get_ProcessId" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="6" hits="4" branch="False" />
+              </lines>
+            </method>
+            <method name="get_ProcessName" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="7" hits="6" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="5" hits="10" branch="False" />
+            <line number="6" hits="4" branch="False" />
+            <line number="7" hits="6" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Infrastructure.Recipes.RecipeTechniqueDocument" filename="Runewire.Core\Infrastructure\Recipes\RecipeTechniqueDocument.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name="get_Name" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="5" hits="10" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="5" hits="10" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Infrastructure.Recipes.YamlRecipeLoader" filename="Runewire.Core\Infrastructure\Recipes\YamlRecipeLoader.cs" line-rate="0.6296" branch-rate="0.3243" complexity="74">
+          <methods>
+            <method name="LoadFromString" signature="(System.String)" line-rate="0.7222" branch-rate="0.75" complexity="4">
+              <lines>
+                <line number="18" hits="5" branch="False" />
+                <line number="19" hits="5" branch="False" />
+                <line number="24" hits="5" branch="False" />
+                <line number="25" hits="5" branch="False" />
+                <line number="26" hits="5" branch="False" />
+                <line number="27" hits="0" branch="False" />
+                <line number="28" hits="0" branch="False" />
+                <line number="29" hits="0" branch="False" />
+                <line number="32" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="53" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="33" hits="0" branch="False" />
+                <line number="34" hits="0" branch="False" />
+                <line number="37" hits="5" branch="False" />
+                <line number="39" hits="5" branch="False" />
+                <line number="40" hits="5" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="102" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="41" hits="2" branch="False" />
+                <line number="42" hits="2" branch="False" />
+                <line number="45" hits="3" branch="False" />
+                <line number="46" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="LoadFromFile" signature="(System.String)" line-rate="0.5333" branch-rate="0.5" complexity="4">
+              <lines>
+                <line number="49" hits="5" branch="False" />
+                <line number="50" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="9" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="51" hits="0" branch="False" />
+                <line number="52" hits="0" branch="False" />
+                <line number="55" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="39" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="56" hits="0" branch="False" />
+                <line number="57" hits="0" branch="False" />
+                <line number="62" hits="5" branch="False" />
+                <line number="63" hits="5" branch="False" />
+                <line number="64" hits="5" branch="False" />
+                <line number="65" hits="0" branch="False" />
+                <line number="66" hits="0" branch="False" />
+                <line number="67" hits="0" branch="False" />
+                <line number="70" hits="5" branch="False" />
+                <line number="71" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="MapToDomain" signature="(Runewire.Core.Infrastructure.Recipes.RecipeDocument)" line-rate="0.6923" branch-rate="0.5" complexity="20">
+              <lines>
+                <line number="74" hits="5" branch="False" />
+                <line number="75" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="14" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="76" hits="0" branch="False" />
+                <line number="77" hits="0" branch="False" />
+                <line number="80" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="43" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="81" hits="0" branch="False" />
+                <line number="82" hits="0" branch="False" />
+                <line number="85" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="72" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="86" hits="0" branch="False" />
+                <line number="87" hits="0" branch="False" />
+                <line number="91" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="95" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="92" hits="5" branch="False" />
+                <line number="94" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="123" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="95" hits="5" branch="False" />
+                <line number="97" hits="5" branch="False" />
+                <line number="98" hits="5" branch="True" condition-coverage="50% (2/4)">
+                  <conditions>
+                    <condition number="163" type="switch" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="99" hits="5" branch="False" />
+                <line number="100" hits="0" branch="False" />
+                <line number="101" hits="2" branch="False" />
+                <line number="102" hits="3" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="232" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="103" hits="0" branch="False" />
+                <line number="104" hits="5" branch="False" />
+                <line number="106" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="303" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="108" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="320" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="110" hits="5" branch="False" />
+                <line number="111" hits="5" branch="False" />
+              </lines>
+            </method>
+            <method name="ParseTargetKind" signature="(System.String)" line-rate="0.4736" branch-rate="0.1818" complexity="44">
+              <lines>
+                <line number="115" hits="5" branch="False" />
+                <line number="116" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="9" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="117" hits="0" branch="False" />
+                <line number="118" hits="0" branch="False" />
+                <line number="121" hits="5" branch="False" />
+                <line number="122" hits="5" branch="True" condition-coverage="16.66% (7/42)">
+                  <conditions>
+                    <condition number="54" type="jump" coverage="50%" />
+                    <condition number="62" type="jump" coverage="100%" />
+                    <condition number="70" type="jump" coverage="50%" />
+                    <condition number="96" type="jump" coverage="50%" />
+                    <condition number="125" type="jump" coverage="0%" />
+                    <condition number="133" type="jump" coverage="0%" />
+                    <condition number="156" type="jump" coverage="0%" />
+                    <condition number="169" type="jump" coverage="0%" />
+                    <condition number="83" type="jump" coverage="0%" />
+                    <condition number="143" type="jump" coverage="0%" />
+                    <condition number="109" type="jump" coverage="0%" />
+                    <condition number="179" type="jump" coverage="0%" />
+                    <condition number="197" type="jump" coverage="0%" />
+                    <condition number="218" type="jump" coverage="50%" />
+                    <condition number="236" type="jump" coverage="0%" />
+                    <condition number="251" type="jump" coverage="0%" />
+                    <condition number="266" type="jump" coverage="0%" />
+                    <condition number="281" type="jump" coverage="50%" />
+                    <condition number="296" type="jump" coverage="0%" />
+                    <condition number="311" type="jump" coverage="0%" />
+                    <condition number="326" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="123" hits="5" branch="False" />
+                <line number="124" hits="0" branch="False" />
+                <line number="125" hits="2" branch="False" />
+                <line number="126" hits="0" branch="False" />
+                <line number="127" hits="0" branch="False" />
+                <line number="128" hits="0" branch="False" />
+                <line number="129" hits="3" branch="False" />
+                <line number="130" hits="0" branch="False" />
+                <line number="131" hits="0" branch="False" />
+                <line number="132" hits="0" branch="False" />
+                <line number="133" hits="0" branch="False" />
+                <line number="134" hits="5" branch="False" />
+                <line number="135" hits="5" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(Runewire.Core.Domain.Validation.IRecipeValidator)" line-rate="1" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="12" hits="5" branch="False" />
+                <line number="14" hits="5" branch="False" />
+                <line number="15" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="34" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="18" hits="5" branch="False" />
+            <line number="19" hits="5" branch="False" />
+            <line number="24" hits="5" branch="False" />
+            <line number="25" hits="5" branch="False" />
+            <line number="26" hits="5" branch="False" />
+            <line number="27" hits="0" branch="False" />
+            <line number="28" hits="0" branch="False" />
+            <line number="29" hits="0" branch="False" />
+            <line number="32" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="53" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="33" hits="0" branch="False" />
+            <line number="34" hits="0" branch="False" />
+            <line number="37" hits="5" branch="False" />
+            <line number="39" hits="5" branch="False" />
+            <line number="40" hits="5" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="102" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="41" hits="2" branch="False" />
+            <line number="42" hits="2" branch="False" />
+            <line number="45" hits="3" branch="False" />
+            <line number="46" hits="3" branch="False" />
+            <line number="49" hits="5" branch="False" />
+            <line number="50" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="9" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="51" hits="0" branch="False" />
+            <line number="52" hits="0" branch="False" />
+            <line number="55" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="39" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="56" hits="0" branch="False" />
+            <line number="57" hits="0" branch="False" />
+            <line number="62" hits="5" branch="False" />
+            <line number="63" hits="5" branch="False" />
+            <line number="64" hits="5" branch="False" />
+            <line number="65" hits="0" branch="False" />
+            <line number="66" hits="0" branch="False" />
+            <line number="67" hits="0" branch="False" />
+            <line number="70" hits="5" branch="False" />
+            <line number="71" hits="3" branch="False" />
+            <line number="74" hits="5" branch="False" />
+            <line number="75" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="14" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="76" hits="0" branch="False" />
+            <line number="77" hits="0" branch="False" />
+            <line number="80" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="43" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="81" hits="0" branch="False" />
+            <line number="82" hits="0" branch="False" />
+            <line number="85" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="72" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="86" hits="0" branch="False" />
+            <line number="87" hits="0" branch="False" />
+            <line number="91" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="95" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="92" hits="5" branch="False" />
+            <line number="94" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="123" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="95" hits="5" branch="False" />
+            <line number="97" hits="5" branch="False" />
+            <line number="98" hits="5" branch="True" condition-coverage="50% (2/4)">
+              <conditions>
+                <condition number="163" type="switch" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="99" hits="5" branch="False" />
+            <line number="100" hits="0" branch="False" />
+            <line number="101" hits="2" branch="False" />
+            <line number="102" hits="3" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="232" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="103" hits="0" branch="False" />
+            <line number="104" hits="5" branch="False" />
+            <line number="106" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="303" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="108" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="320" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="110" hits="5" branch="False" />
+            <line number="111" hits="5" branch="False" />
+            <line number="115" hits="5" branch="False" />
+            <line number="116" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="9" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="117" hits="0" branch="False" />
+            <line number="118" hits="0" branch="False" />
+            <line number="121" hits="5" branch="False" />
+            <line number="122" hits="5" branch="True" condition-coverage="16.66% (7/42)">
+              <conditions>
+                <condition number="54" type="jump" coverage="50%" />
+                <condition number="62" type="jump" coverage="100%" />
+                <condition number="70" type="jump" coverage="50%" />
+                <condition number="96" type="jump" coverage="50%" />
+                <condition number="125" type="jump" coverage="0%" />
+                <condition number="133" type="jump" coverage="0%" />
+                <condition number="156" type="jump" coverage="0%" />
+                <condition number="169" type="jump" coverage="0%" />
+                <condition number="83" type="jump" coverage="0%" />
+                <condition number="143" type="jump" coverage="0%" />
+                <condition number="109" type="jump" coverage="0%" />
+                <condition number="179" type="jump" coverage="0%" />
+                <condition number="197" type="jump" coverage="0%" />
+                <condition number="218" type="jump" coverage="50%" />
+                <condition number="236" type="jump" coverage="0%" />
+                <condition number="251" type="jump" coverage="0%" />
+                <condition number="266" type="jump" coverage="0%" />
+                <condition number="281" type="jump" coverage="50%" />
+                <condition number="296" type="jump" coverage="0%" />
+                <condition number="311" type="jump" coverage="0%" />
+                <condition number="326" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="123" hits="5" branch="False" />
+            <line number="124" hits="0" branch="False" />
+            <line number="125" hits="2" branch="False" />
+            <line number="126" hits="0" branch="False" />
+            <line number="127" hits="0" branch="False" />
+            <line number="128" hits="0" branch="False" />
+            <line number="129" hits="3" branch="False" />
+            <line number="130" hits="0" branch="False" />
+            <line number="131" hits="0" branch="False" />
+            <line number="132" hits="0" branch="False" />
+            <line number="133" hits="0" branch="False" />
+            <line number="134" hits="5" branch="False" />
+            <line number="135" hits="5" branch="False" />
+            <line number="12" hits="5" branch="False" />
+            <line number="14" hits="5" branch="False" />
+            <line number="15" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="34" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+          </lines>
+        </class>
+        <class name="Runewire.Core.Domain.Validation.BasicRecipeValidator" filename="Runewire.Core\Domain\Validation\BasicRecipeValidator.cs" line-rate="0.8332999999999999" branch-rate="0.8332999999999999" complexity="24">
+          <methods>
+            <method name="Validate" signature="(Runewire.Core.Domain.Recipes.RunewireRecipe)" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="14" hits="5" branch="False" />
+                <line number="15" hits="5" branch="False" />
+                <line number="17" hits="5" branch="False" />
+                <line number="19" hits="5" branch="False" />
+                <line number="20" hits="5" branch="False" />
+                <line number="21" hits="5" branch="False" />
+                <line number="22" hits="5" branch="False" />
+                <line number="23" hits="5" branch="False" />
+                <line number="25" hits="5" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="65" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="26" hits="5" branch="False" />
+              </lines>
+            </method>
+            <method name="ValidateName" signature="(Runewire.Core.Domain.Recipes.RunewireRecipe,System.Collections.Generic.List`1&lt;Runewire.Core.Domain.Validation.RecipeValidationError&gt;)" line-rate="0.7" branch-rate="0.75" complexity="4">
+              <lines>
+                <line number="29" hits="5" branch="False" />
+                <line number="30" hits="5" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="14" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="31" hits="2" branch="False" />
+                <line number="32" hits="2" branch="False" />
+                <line number="33" hits="2" branch="False" />
+                <line number="37" hits="3" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="58" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="38" hits="0" branch="False" />
+                <line number="39" hits="0" branch="False" />
+                <line number="40" hits="0" branch="False" />
+                <line number="41" hits="5" branch="False" />
+              </lines>
+            </method>
+            <method name="ValidatePayloadPath" signature="(Runewire.Core.Domain.Recipes.RunewireRecipe,System.Collections.Generic.List`1&lt;Runewire.Core.Domain.Validation.RecipeValidationError&gt;)" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="45" hits="5" branch="False" />
+                <line number="46" hits="5" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="14" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="47" hits="2" branch="False" />
+                <line number="48" hits="2" branch="False" />
+                <line number="49" hits="2" branch="False" />
+                <line number="50" hits="5" branch="False" />
+              </lines>
+            </method>
+            <method name="ValidateTechnique" signature="(Runewire.Core.Domain.Recipes.RunewireRecipe,System.Collections.Generic.List`1&lt;Runewire.Core.Domain.Validation.RecipeValidationError&gt;)" line-rate="1" branch-rate="1" complexity="2">
+              <lines>
+                <line number="53" hits="5" branch="False" />
+                <line number="54" hits="5" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="19" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="55" hits="2" branch="False" />
+                <line number="56" hits="2" branch="False" />
+                <line number="57" hits="2" branch="False" />
+                <line number="58" hits="5" branch="False" />
+              </lines>
+            </method>
+            <method name="ValidateTarget" signature="(Runewire.Core.Domain.Recipes.RunewireRecipe,System.Collections.Generic.List`1&lt;Runewire.Core.Domain.Validation.RecipeValidationError&gt;)" line-rate="0.625" branch-rate="0.7" complexity="10">
+              <lines>
+                <line number="61" hits="5" branch="False" />
+                <line number="62" hits="5" branch="True" condition-coverage="75% (3/4)">
+                  <conditions>
+                    <condition number="16" type="switch" coverage="75%" />
+                  </conditions>
+                </line>
+                <line number="66" hits="0" branch="False" />
+                <line number="69" hits="2" branch="True" condition-coverage="75% (3/4)">
+                  <conditions>
+                    <condition number="62" type="jump" coverage="50%" />
+                    <condition number="106" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="70" hits="2" branch="False" />
+                <line number="71" hits="2" branch="False" />
+                <line number="72" hits="2" branch="False" />
+                <line number="73" hits="2" branch="False" />
+                <line number="76" hits="3" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="157" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="77" hits="0" branch="False" />
+                <line number="78" hits="0" branch="False" />
+                <line number="79" hits="0" branch="False" />
+                <line number="80" hits="3" branch="False" />
+                <line number="83" hits="0" branch="False" />
+                <line number="84" hits="0" branch="False" />
+                <line number="86" hits="5" branch="False" />
+              </lines>
+            </method>
+            <method name="ValidateSafety" signature="(Runewire.Core.Domain.Recipes.RunewireRecipe,System.Collections.Generic.List`1&lt;Runewire.Core.Domain.Validation.RecipeValidationError&gt;)" line-rate="1" branch-rate="1" complexity="4">
+              <lines>
+                <line number="89" hits="5" branch="False" />
+                <line number="90" hits="5" branch="True" condition-coverage="100% (4/4)">
+                  <conditions>
+                    <condition number="7" type="jump" coverage="100%" />
+                    <condition number="23" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="91" hits="2" branch="False" />
+                <line number="92" hits="2" branch="False" />
+                <line number="93" hits="2" branch="False" />
+                <line number="94" hits="5" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="14" hits="5" branch="False" />
+            <line number="15" hits="5" branch="False" />
+            <line number="17" hits="5" branch="False" />
+            <line number="19" hits="5" branch="False" />
+            <line number="20" hits="5" branch="False" />
+            <line number="21" hits="5" branch="False" />
+            <line number="22" hits="5" branch="False" />
+            <line number="23" hits="5" branch="False" />
+            <line number="25" hits="5" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="65" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="26" hits="5" branch="False" />
+            <line number="29" hits="5" branch="False" />
+            <line number="30" hits="5" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="14" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="31" hits="2" branch="False" />
+            <line number="32" hits="2" branch="False" />
+            <line number="33" hits="2" branch="False" />
+            <line number="37" hits="3" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="58" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="38" hits="0" branch="False" />
+            <line number="39" hits="0" branch="False" />
+            <line number="40" hits="0" branch="False" />
+            <line number="41" hits="5" branch="False" />
+            <line number="45" hits="5" branch="False" />
+            <line number="46" hits="5" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="14" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="47" hits="2" branch="False" />
+            <line number="48" hits="2" branch="False" />
+            <line number="49" hits="2" branch="False" />
+            <line number="50" hits="5" branch="False" />
+            <line number="53" hits="5" branch="False" />
+            <line number="54" hits="5" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="19" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="55" hits="2" branch="False" />
+            <line number="56" hits="2" branch="False" />
+            <line number="57" hits="2" branch="False" />
+            <line number="58" hits="5" branch="False" />
+            <line number="61" hits="5" branch="False" />
+            <line number="62" hits="5" branch="True" condition-coverage="75% (3/4)">
+              <conditions>
+                <condition number="16" type="switch" coverage="75%" />
+              </conditions>
+            </line>
+            <line number="66" hits="0" branch="False" />
+            <line number="69" hits="2" branch="True" condition-coverage="75% (3/4)">
+              <conditions>
+                <condition number="62" type="jump" coverage="50%" />
+                <condition number="106" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="70" hits="2" branch="False" />
+            <line number="71" hits="2" branch="False" />
+            <line number="72" hits="2" branch="False" />
+            <line number="73" hits="2" branch="False" />
+            <line number="76" hits="3" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="157" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="77" hits="0" branch="False" />
+            <line number="78" hits="0" branch="False" />
+            <line number="79" hits="0" branch="False" />
+            <line number="80" hits="3" branch="False" />
+            <line number="83" hits="0" branch="False" />
+            <line number="84" hits="0" branch="False" />
+            <line number="86" hits="5" branch="False" />
+            <line number="89" hits="5" branch="False" />
+            <line number="90" hits="5" branch="True" condition-coverage="100% (4/4)">
+              <conditions>
+                <condition number="7" type="jump" coverage="100%" />
+                <condition number="23" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="91" hits="2" branch="False" />
+            <line number="92" hits="2" branch="False" />
+            <line number="93" hits="2" branch="False" />
+            <line number="94" hits="5" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Domain.Validation.RecipeValidationError" filename="Runewire.Core\Domain\Validation\RecipeValidationError.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name="get_Code" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="6" hits="30" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="6" hits="30" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Domain.Validation.RecipeValidationResult" filename="Runewire.Core\Domain\Validation\RecipeValidationResult.cs" line-rate="1" branch-rate="0.5" complexity="6">
+          <methods>
+            <method name="get_IsValid" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="6" hits="12" branch="False" />
+              </lines>
+            </method>
+            <method name="Success" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="8" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="Failure" signature="(System.Collections.Generic.IEnumerable`1&lt;Runewire.Core.Domain.Validation.RecipeValidationError&gt;)" line-rate="1" branch-rate="0.5" complexity="4">
+              <lines>
+                <line number="11" hits="2" branch="False" />
+                <line number="12" hits="2" branch="True" condition-coverage="50% (2/4)">
+                  <conditions>
+                    <condition number="2" type="jump" coverage="50%" />
+                    <condition number="14" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="13" hits="2" branch="False" />
+                <line number="14" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="6" hits="12" branch="False" />
+            <line number="8" hits="3" branch="False" />
+            <line number="11" hits="2" branch="False" />
+            <line number="12" hits="2" branch="True" condition-coverage="50% (2/4)">
+              <conditions>
+                <condition number="2" type="jump" coverage="50%" />
+                <condition number="14" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="13" hits="2" branch="False" />
+            <line number="14" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Domain.Recipes.InjectionTechnique" filename="Runewire.Core\Domain\Recipes\InjectionTechnique.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name="get_Name" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="6" hits="12" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="6" hits="12" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Domain.Recipes.RecipeTarget" filename="Runewire.Core\Domain\Recipes\RecipeTarget.cs" line-rate="0.8461" branch-rate="1" complexity="8">
+          <methods>
+            <method name="get_Kind" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="8" hits="12" branch="False" />
+              </lines>
+            </method>
+            <method name="get_ProcessId" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="10" hits="9" branch="False" />
+              </lines>
+            </method>
+            <method name="get_ProcessName" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="12" hits="10" branch="False" />
+              </lines>
+            </method>
+            <method name="Self" signature="()" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="21" hits="0" branch="False" />
+              </lines>
+            </method>
+            <method name="ForProcessId" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="23" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="ForProcessName" signature="(System.String)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="25" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(Runewire.Core.Domain.Recipes.RecipeTargetKind,System.Nullable`1&lt;System.Int32&gt;,System.String)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="14" hits="5" branch="False" />
+                <line number="15" hits="5" branch="False" />
+                <line number="16" hits="5" branch="False" />
+                <line number="17" hits="5" branch="False" />
+                <line number="18" hits="5" branch="False" />
+                <line number="19" hits="5" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(Runewire.Core.Domain.Recipes.RecipeTarget)" line-rate="0" branch-rate="1" complexity="1">
+              <lines>
+                <line number="6" hits="0" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="8" hits="12" branch="False" />
+            <line number="10" hits="9" branch="False" />
+            <line number="12" hits="10" branch="False" />
+            <line number="21" hits="0" branch="False" />
+            <line number="23" hits="2" branch="False" />
+            <line number="25" hits="3" branch="False" />
+            <line number="14" hits="5" branch="False" />
+            <line number="15" hits="5" branch="False" />
+            <line number="16" hits="5" branch="False" />
+            <line number="17" hits="5" branch="False" />
+            <line number="18" hits="5" branch="False" />
+            <line number="19" hits="5" branch="False" />
+            <line number="6" hits="0" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Core.Domain.Recipes.RunewireRecipe" filename="Runewire.Core\Domain\Recipes\RunewireRecipe.cs" line-rate="1" branch-rate="1" complexity="8">
+          <methods>
+            <method name="get_Name" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="7" hits="13" branch="False" />
+              </lines>
+            </method>
+            <method name="get_Description" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="8" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="get_Target" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="9" hits="14" branch="False" />
+              </lines>
+            </method>
+            <method name="get_Technique" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="10" hits="7" branch="False" />
+              </lines>
+            </method>
+            <method name="get_PayloadPath" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="11" hits="7" branch="False" />
+              </lines>
+            </method>
+            <method name="get_RequireInteractiveConsent" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="12" hits="4" branch="False" />
+              </lines>
+            </method>
+            <method name="get_AllowKernelDrivers" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="13" hits="7" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(System.String,System.String,Runewire.Core.Domain.Recipes.RecipeTarget,Runewire.Core.Domain.Recipes.InjectionTechnique,System.String,System.Boolean,System.Boolean)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="6" hits="5" branch="False" />
+                <line number="14" hits="5" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="7" hits="13" branch="False" />
+            <line number="8" hits="2" branch="False" />
+            <line number="9" hits="14" branch="False" />
+            <line number="10" hits="7" branch="False" />
+            <line number="11" hits="7" branch="False" />
+            <line number="12" hits="4" branch="False" />
+            <line number="13" hits="7" branch="False" />
+            <line number="6" hits="5" branch="False" />
+            <line number="14" hits="5" branch="False" />
+          </lines>
+        </class>
+      </classes>
+    </package>
+    <package name="Runewire.Orchestrator" line-rate="0.7153" branch-rate="0.3333" complexity="44">
+      <classes>
+        <class name="Runewire.Orchestrator.Orchestration.InjectionRequest" filename="Runewire.Orchestrator\Orchestration\InjectionRequest.cs" line-rate="1" branch-rate="1" complexity="8">
+          <methods>
+            <method name="get_RecipeName" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="9" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="get_RecipeDescription" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="10" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="get_Target" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="11" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name="get_TechniqueName" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="12" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="get_PayloadPath" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="13" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="get_AllowKernelDrivers" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="14" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="get_RequireInteractiveConsent" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="15" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(System.String,System.String,Runewire.Core.Domain.Recipes.RecipeTarget,System.String,System.String,System.Boolean,System.Boolean)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="8" hits="2" branch="False" />
+                <line number="16" hits="2" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="9" hits="2" branch="False" />
+            <line number="10" hits="3" branch="False" />
+            <line number="11" hits="3" branch="False" />
+            <line number="12" hits="2" branch="False" />
+            <line number="13" hits="2" branch="False" />
+            <line number="14" hits="2" branch="False" />
+            <line number="15" hits="2" branch="False" />
+            <line number="8" hits="2" branch="False" />
+            <line number="16" hits="2" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Orchestrator.Orchestration.InjectionResult" filename="Runewire.Orchestrator\Orchestration\InjectionResult.cs" line-rate="1" branch-rate="1" complexity="3">
+          <methods>
+            <method name="get_Success" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="6" hits="8" branch="False" />
+              </lines>
+            </method>
+            <method name="Succeeded" signature="(System.DateTimeOffset,System.DateTimeOffset)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="8" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="Failed" signature="(System.String,System.String,System.DateTimeOffset,System.DateTimeOffset)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="11" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="6" hits="8" branch="False" />
+            <line number="8" hits="1" branch="False" />
+            <line number="11" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Orchestrator.Orchestration.NativeInjectionEngine" filename="Runewire.Orchestrator\Orchestration\NativeInjectionEngine.cs" line-rate="0.6195" branch-rate="0.30760000000000004" complexity="27">
+          <methods>
+            <method name="ExecuteAsync" signature="(Runewire.Orchestrator.Orchestration.InjectionRequest,System.Threading.CancellationToken)" line-rate="0.8845999999999999" branch-rate="1" complexity="4">
+              <lines>
+                <line number="30" hits="1" branch="False" />
+                <line number="31" hits="1" branch="False" />
+                <line number="33" hits="1" branch="False" />
+                <line number="35" hits="1" branch="False" />
+                <line number="37" hits="1" branch="False" />
+                <line number="41" hits="1" branch="False" />
+                <line number="42" hits="1" branch="False" />
+                <line number="48" hits="1" branch="False" />
+                <line number="49" hits="1" branch="False" />
+                <line number="50" hits="0" branch="False" />
+                <line number="51" hits="1" branch="False" />
+                <line number="52" hits="1" branch="False" />
+                <line number="53" hits="1" branch="False" />
+                <line number="54" hits="1" branch="False" />
+                <line number="57" hits="0" branch="False" />
+                <line number="58" hits="0" branch="False" />
+                <line number="61" hits="1" branch="False" />
+                <line number="62" hits="13" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="183" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="63" hits="5" branch="False" />
+                <line number="64" hits="5" branch="True" condition-coverage="100% (2/2)">
+                  <conditions>
+                    <condition number="163" type="jump" coverage="100%" />
+                  </conditions>
+                </line>
+                <line number="65" hits="5" branch="False" />
+                <line number="66" hits="5" branch="False" />
+                <line number="67" hits="5" branch="False" />
+                <line number="68" hits="5" branch="False" />
+                <line number="69" hits="1" branch="False" />
+                <line number="70" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="MapToNativeRequest" signature="(Runewire.Orchestrator.Orchestration.InjectionRequest,System.Collections.Generic.List`1&lt;System.IntPtr&gt;)" line-rate="1" branch-rate="0.5" complexity="4">
+              <lines>
+                <line number="73" hits="1" branch="False" />
+                <line number="74" hits="1" branch="False" />
+                <line number="88" hits="1" branch="False" />
+                <line number="90" hits="1" branch="True" condition-coverage="50% (2/4)">
+                  <conditions>
+                    <condition number="156" type="jump" coverage="50%" />
+                    <condition number="175" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="91" hits="1" branch="False" />
+                <line number="92" hits="1" branch="False" />
+                <line number="93" hits="1" branch="False" />
+                <line number="94" hits="1" branch="False" />
+                <line number="95" hits="1" branch="False" />
+                <line number="96" hits="1" branch="False" />
+                <line number="97" hits="1" branch="False" />
+                <line number="98" hits="1" branch="False" />
+                <line number="99" hits="1" branch="False" />
+                <line number="100" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="MapTarget" signature="(Runewire.Core.Domain.Recipes.RecipeTarget,System.Func`2&lt;System.String,System.IntPtr&gt;)" line-rate="0.5357" branch-rate="0.1666" complexity="6">
+              <lines>
+                <line number="103" hits="1" branch="False" />
+                <line number="104" hits="1" branch="False" />
+                <line number="106" hits="1" branch="True" condition-coverage="25% (1/4)">
+                  <conditions>
+                    <condition number="25" type="switch" coverage="25%" />
+                  </conditions>
+                </line>
+                <line number="107" hits="1" branch="False" />
+                <line number="108" hits="0" branch="False" />
+                <line number="109" hits="0" branch="False" />
+                <line number="110" hits="0" branch="False" />
+                <line number="111" hits="0" branch="False" />
+                <line number="112" hits="0" branch="False" />
+                <line number="113" hits="0" branch="False" />
+                <line number="114" hits="1" branch="False" />
+                <line number="115" hits="0" branch="True" condition-coverage="0% (0/2)">
+                  <conditions>
+                    <condition number="122" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="116" hits="0" branch="False" />
+                <line number="117" hits="0" branch="False" />
+                <line number="118" hits="0" branch="False" />
+                <line number="119" hits="0" branch="False" />
+                <line number="120" hits="0" branch="False" />
+                <line number="121" hits="1" branch="False" />
+                <line number="122" hits="1" branch="False" />
+                <line number="123" hits="1" branch="False" />
+                <line number="124" hits="1" branch="False" />
+                <line number="125" hits="1" branch="False" />
+                <line number="126" hits="1" branch="False" />
+                <line number="127" hits="1" branch="False" />
+                <line number="128" hits="1" branch="False" />
+                <line number="129" hits="0" branch="False" />
+                <line number="130" hits="1" branch="False" />
+                <line number="131" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name="MapFromNativeResult" signature="(System.Int32,Runewire.Orchestrator.NativeInterop.RwInjectionResult,System.DateTimeOffset)" line-rate="0" branch-rate="0" complexity="8">
+              <lines>
+                <line number="134" hits="0" branch="False" />
+                <line number="135" hits="0" branch="True" condition-coverage="0% (0/2)">
+                  <conditions>
+                    <condition number="2" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="137" hits="0" branch="True" condition-coverage="0% (0/2)">
+                  <conditions>
+                    <condition number="28" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="139" hits="0" branch="True" condition-coverage="0% (0/2)">
+                  <conditions>
+                    <condition number="56" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="141" hits="0" branch="False" />
+                <line number="142" hits="0" branch="False" />
+                <line number="144" hits="0" branch="True" condition-coverage="0% (0/2)">
+                  <conditions>
+                    <condition number="105" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="145" hits="0" branch="False" />
+              </lines>
+            </method>
+            <method name="TryFromUnixMilliseconds" signature="(System.UInt64,System.DateTimeOffset)" line-rate="0" branch-rate="0" complexity="2">
+              <lines>
+                <line number="148" hits="0" branch="False" />
+                <line number="149" hits="0" branch="True" condition-coverage="0% (0/2)">
+                  <conditions>
+                    <condition number="8" type="jump" coverage="0%" />
+                  </conditions>
+                </line>
+                <line number="150" hits="0" branch="False" />
+                <line number="151" hits="0" branch="False" />
+                <line number="155" hits="0" branch="False" />
+                <line number="156" hits="0" branch="False" />
+                <line number="157" hits="0" branch="False" />
+                <line number="159" hits="0" branch="False" />
+                <line number="160" hits="0" branch="False" />
+                <line number="161" hits="0" branch="False" />
+                <line number="163" hits="0" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="()" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="17" hits="3" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(Runewire.Orchestrator.NativeInterop.INativeInjectorInvoker)" line-rate="1" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="23" hits="1" branch="False" />
+                <line number="24" hits="1" branch="False" />
+                <line number="25" hits="1" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="11" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="26" hits="1" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="30" hits="1" branch="False" />
+            <line number="31" hits="1" branch="False" />
+            <line number="33" hits="1" branch="False" />
+            <line number="35" hits="1" branch="False" />
+            <line number="37" hits="1" branch="False" />
+            <line number="41" hits="1" branch="False" />
+            <line number="42" hits="1" branch="False" />
+            <line number="48" hits="1" branch="False" />
+            <line number="49" hits="1" branch="False" />
+            <line number="50" hits="0" branch="False" />
+            <line number="51" hits="1" branch="False" />
+            <line number="52" hits="1" branch="False" />
+            <line number="53" hits="1" branch="False" />
+            <line number="54" hits="1" branch="False" />
+            <line number="57" hits="0" branch="False" />
+            <line number="58" hits="0" branch="False" />
+            <line number="61" hits="1" branch="False" />
+            <line number="62" hits="13" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="183" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="63" hits="5" branch="False" />
+            <line number="64" hits="5" branch="True" condition-coverage="100% (2/2)">
+              <conditions>
+                <condition number="163" type="jump" coverage="100%" />
+              </conditions>
+            </line>
+            <line number="65" hits="5" branch="False" />
+            <line number="66" hits="5" branch="False" />
+            <line number="67" hits="5" branch="False" />
+            <line number="68" hits="5" branch="False" />
+            <line number="69" hits="1" branch="False" />
+            <line number="70" hits="1" branch="False" />
+            <line number="73" hits="1" branch="False" />
+            <line number="74" hits="1" branch="False" />
+            <line number="88" hits="1" branch="False" />
+            <line number="90" hits="1" branch="True" condition-coverage="50% (2/4)">
+              <conditions>
+                <condition number="156" type="jump" coverage="50%" />
+                <condition number="175" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="91" hits="1" branch="False" />
+            <line number="92" hits="1" branch="False" />
+            <line number="93" hits="1" branch="False" />
+            <line number="94" hits="1" branch="False" />
+            <line number="95" hits="1" branch="False" />
+            <line number="96" hits="1" branch="False" />
+            <line number="97" hits="1" branch="False" />
+            <line number="98" hits="1" branch="False" />
+            <line number="99" hits="1" branch="False" />
+            <line number="100" hits="1" branch="False" />
+            <line number="103" hits="1" branch="False" />
+            <line number="104" hits="1" branch="False" />
+            <line number="106" hits="1" branch="True" condition-coverage="25% (1/4)">
+              <conditions>
+                <condition number="25" type="switch" coverage="25%" />
+              </conditions>
+            </line>
+            <line number="107" hits="1" branch="False" />
+            <line number="108" hits="0" branch="False" />
+            <line number="109" hits="0" branch="False" />
+            <line number="110" hits="0" branch="False" />
+            <line number="111" hits="0" branch="False" />
+            <line number="112" hits="0" branch="False" />
+            <line number="113" hits="0" branch="False" />
+            <line number="114" hits="1" branch="False" />
+            <line number="115" hits="0" branch="True" condition-coverage="0% (0/2)">
+              <conditions>
+                <condition number="122" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="116" hits="0" branch="False" />
+            <line number="117" hits="0" branch="False" />
+            <line number="118" hits="0" branch="False" />
+            <line number="119" hits="0" branch="False" />
+            <line number="120" hits="0" branch="False" />
+            <line number="121" hits="1" branch="False" />
+            <line number="122" hits="1" branch="False" />
+            <line number="123" hits="1" branch="False" />
+            <line number="124" hits="1" branch="False" />
+            <line number="125" hits="1" branch="False" />
+            <line number="126" hits="1" branch="False" />
+            <line number="127" hits="1" branch="False" />
+            <line number="128" hits="1" branch="False" />
+            <line number="129" hits="0" branch="False" />
+            <line number="130" hits="1" branch="False" />
+            <line number="131" hits="1" branch="False" />
+            <line number="134" hits="0" branch="False" />
+            <line number="135" hits="0" branch="True" condition-coverage="0% (0/2)">
+              <conditions>
+                <condition number="2" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="137" hits="0" branch="True" condition-coverage="0% (0/2)">
+              <conditions>
+                <condition number="28" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="139" hits="0" branch="True" condition-coverage="0% (0/2)">
+              <conditions>
+                <condition number="56" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="141" hits="0" branch="False" />
+            <line number="142" hits="0" branch="False" />
+            <line number="144" hits="0" branch="True" condition-coverage="0% (0/2)">
+              <conditions>
+                <condition number="105" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="145" hits="0" branch="False" />
+            <line number="148" hits="0" branch="False" />
+            <line number="149" hits="0" branch="True" condition-coverage="0% (0/2)">
+              <conditions>
+                <condition number="8" type="jump" coverage="0%" />
+              </conditions>
+            </line>
+            <line number="150" hits="0" branch="False" />
+            <line number="151" hits="0" branch="False" />
+            <line number="155" hits="0" branch="False" />
+            <line number="156" hits="0" branch="False" />
+            <line number="157" hits="0" branch="False" />
+            <line number="159" hits="0" branch="False" />
+            <line number="160" hits="0" branch="False" />
+            <line number="161" hits="0" branch="False" />
+            <line number="163" hits="0" branch="False" />
+            <line number="17" hits="3" branch="False" />
+            <line number="23" hits="1" branch="False" />
+            <line number="24" hits="1" branch="False" />
+            <line number="25" hits="1" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="11" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="26" hits="1" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Orchestrator.Orchestration.NativeInjectionEngine/&lt;&gt;c__DisplayClass4_0" filename="Runewire.Orchestrator\Orchestration\NativeInjectionEngine.cs" line-rate="0.75" branch-rate="0.5" complexity="2">
+          <methods>
+            <method name="&lt;MapToNativeRequest&gt;g__Alloc|0" signature="(System.String)" line-rate="0.75" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="77" hits="5" branch="False" />
+                <line number="78" hits="5" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="9" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="79" hits="0" branch="False" />
+                <line number="80" hits="0" branch="False" />
+                <line number="83" hits="5" branch="False" />
+                <line number="84" hits="5" branch="False" />
+                <line number="85" hits="5" branch="False" />
+                <line number="86" hits="5" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="77" hits="5" branch="False" />
+            <line number="78" hits="5" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="9" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="79" hits="0" branch="False" />
+            <line number="80" hits="0" branch="False" />
+            <line number="83" hits="5" branch="False" />
+            <line number="84" hits="5" branch="False" />
+            <line number="85" hits="5" branch="False" />
+            <line number="86" hits="5" branch="False" />
+          </lines>
+        </class>
+        <class name="Runewire.Orchestrator.Orchestration.RecipeExecutor" filename="Runewire.Orchestrator\Orchestration\RecipeExecutor.cs" line-rate="1" branch-rate="0.5" complexity="4">
+          <methods>
+            <method name="ExecuteAsync" signature="(Runewire.Core.Domain.Recipes.RunewireRecipe,System.Threading.CancellationToken)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="17" hits="2" branch="False" />
+                <line number="18" hits="2" branch="False" />
+                <line number="20" hits="2" branch="False" />
+                <line number="21" hits="2" branch="False" />
+                <line number="22" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name="MapToRequest" signature="(Runewire.Core.Domain.Recipes.RunewireRecipe)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="25" hits="2" branch="False" />
+                <line number="26" hits="2" branch="False" />
+                <line number="27" hits="2" branch="False" />
+                <line number="28" hits="2" branch="False" />
+                <line number="29" hits="2" branch="False" />
+                <line number="30" hits="2" branch="False" />
+                <line number="31" hits="2" branch="False" />
+                <line number="32" hits="2" branch="False" />
+                <line number="33" hits="2" branch="False" />
+                <line number="34" hits="2" branch="False" />
+                <line number="35" hits="2" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(Runewire.Orchestrator.Orchestration.IInjectionEngine)" line-rate="1" branch-rate="0.5" complexity="2">
+              <lines>
+                <line number="9" hits="3" branch="False" />
+                <line number="11" hits="3" branch="True" condition-coverage="50% (1/2)">
+                  <conditions>
+                    <condition number="3" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="17" hits="2" branch="False" />
+            <line number="18" hits="2" branch="False" />
+            <line number="20" hits="2" branch="False" />
+            <line number="21" hits="2" branch="False" />
+            <line number="22" hits="2" branch="False" />
+            <line number="25" hits="2" branch="False" />
+            <line number="26" hits="2" branch="False" />
+            <line number="27" hits="2" branch="False" />
+            <line number="28" hits="2" branch="False" />
+            <line number="29" hits="2" branch="False" />
+            <line number="30" hits="2" branch="False" />
+            <line number="31" hits="2" branch="False" />
+            <line number="32" hits="2" branch="False" />
+            <line number="33" hits="2" branch="False" />
+            <line number="34" hits="2" branch="False" />
+            <line number="35" hits="2" branch="False" />
+            <line number="9" hits="3" branch="False" />
+            <line number="11" hits="3" branch="True" condition-coverage="50% (1/2)">
+              <conditions>
+                <condition number="3" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+          </lines>
+        </class>
+      </classes>
+    </package>
+  </packages>
+</coverage>

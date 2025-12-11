@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace Runewire.Orchestrator.NativeInterop;
@@ -21,15 +20,7 @@ internal enum RwTargetKind : int
 internal struct RwTarget
 {
     public RwTargetKind Kind;
-
-    /// <summary>
-    /// Process ID (for ProcessId targets); unused otherwise.
-    /// </summary>
     public uint Pid;
-
-    /// <summary>
-    /// UTF-8 / ANSI process name (for ProcessName targets); may be null.
-    /// </summary>
     public IntPtr ProcessName;
 }
 
