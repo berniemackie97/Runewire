@@ -1,14 +1,16 @@
-using System.Text;
-
 namespace Runewire.Cli.Tests.Commands;
 
-public class RecipeRunCommandTests
+/// <summary>
+/// End-to-end tests for the <c>run</c> CLI command executing recipes.
+/// </summary>
+public sealed class RecipeRunCommandTests
 {
     [Fact]
-    public void Run_valid_recipe_returns_exit_code_0_and_reports_success()
+    public async Task Run_valid_recipe_returns_exit_code_0_and_reports_success()
     {
         // Setup
-        string recipePath = CreateTempFile(
+        string recipePath = CLITestHarness.CreateTempRecipeFile(
+            "runewire-run-test",
             """
             name: demo-run
             description: Demo run execution.
@@ -26,7 +28,7 @@ public class RecipeRunCommandTests
         );
 
         // Run
-        (int exitCode, string output) = RunWithCapturedOutput("run", recipePath);
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("run", recipePath);
 
         // Assert
         Assert.Equal(0, exitCode);
@@ -35,10 +37,11 @@ public class RecipeRunCommandTests
     }
 
     [Fact]
-    public void Run_invalid_recipe_returns_exit_code_1_and_lists_errors()
+    public async Task Run_invalid_recipe_returns_exit_code_1_and_lists_errors()
     {
         // Setup
-        string recipePath = CreateTempFile(
+        string recipePath = CLITestHarness.CreateTempRecipeFile(
+            "runewire-run-invalid-test",
             """
             name: ''
             target:
@@ -55,7 +58,7 @@ public class RecipeRunCommandTests
         );
 
         // Run
-        (int exitCode, string output) = RunWithCapturedOutput("run", recipePath);
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("run", recipePath);
 
         // Assert
         Assert.Equal(1, exitCode);
@@ -68,47 +71,16 @@ public class RecipeRunCommandTests
     }
 
     [Fact]
-    public void Run_missing_file_returns_exit_code_2_and_error_message()
+    public async Task Run_missing_file_returns_exit_code_2_and_error_message()
     {
         // Setup
-        string nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".yaml");
+        string recipePath = Path.Combine(Path.GetTempPath(), $"runewire-run-missing-{Guid.NewGuid():N}.yaml");
 
         // Run
-        (int exitCode, string output) = RunWithCapturedOutput("run", nonExistentPath);
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("run", recipePath);
 
         // Assert
         Assert.Equal(2, exitCode);
         Assert.Contains("Recipe file not found", output);
-    }
-
-    private static (int exitCode, string stdout) RunWithCapturedOutput(params string[] args)
-    {
-        TextWriter originalOut = Console.Out;
-        TextWriter originalErr = Console.Error;
-
-        StringBuilder sb = new();
-        using StringWriter writer = new(sb);
-
-        Console.SetOut(writer);
-        Console.SetError(writer);
-
-        try
-        {
-            int exitCode = Program.Main(args);
-            writer.Flush();
-            return (exitCode, sb.ToString());
-        }
-        finally
-        {
-            Console.SetOut(originalOut);
-            Console.SetError(originalErr);
-        }
-    }
-
-    private static string CreateTempFile(string contents)
-    {
-        string path = Path.Combine(Path.GetTempPath(), $"runewire-run-test-{Guid.NewGuid():N}.yaml");
-        File.WriteAllText(path, contents);
-        return path;
     }
 }

@@ -1,5 +1,6 @@
 using System.CommandLine;
 using Runewire.Core.Domain.Recipes;
+using Runewire.Core.Domain.Techniques;
 using Runewire.Core.Domain.Validation;
 using Runewire.Core.Infrastructure.Recipes;
 
@@ -12,20 +13,28 @@ public static class RecipeValidateCommand
 {
     public const string CommandName = "validate";
 
+    // Exit codes for the 'validate' command.
+    private const int ExitCodeSuccess = 0;
+    private const int ExitCodeValidationError = 1;
+    private const int ExitCodeLoadOrOtherError = 2;
+
+    // Technique registry is immutable and safe to reuse across invocations.
+    private static readonly BuiltInInjectionTechniqueRegistry TechniqueRegistry = new();
+
     /// <summary>
     /// Creates the 'validate' command:
-    ///   runewire validate <recipe.yaml>
+    ///   runewire validate &lt;recipe.yaml&gt;
     /// </summary>
     public static Command Create()
     {
         Argument<FileInfo> recipeArgument = new("recipe")
         {
-            Description = "Path to the recipe YAML file to validate."
+            Description = "Path to the recipe YAML file to validate.",
         };
 
-        Command command = new(CommandName, description: "Validate a Runewire recipe YAML file.")
+        Command command = new(name: CommandName, description: "Validate a Runewire recipe YAML file.")
         {
-            recipeArgument
+            recipeArgument,
         };
 
         command.SetAction(parseResult =>
@@ -35,7 +44,7 @@ public static class RecipeValidateCommand
             if (recipeFile is null)
             {
                 WriteError("No recipe file specified.");
-                return 2;
+                return ExitCodeLoadOrOtherError;
             }
 
             return Handle(recipeFile);
@@ -55,10 +64,10 @@ public static class RecipeValidateCommand
         if (!recipeFile.Exists)
         {
             WriteError($"Recipe file not found: {recipeFile.FullName}");
-            return 2;
+            return ExitCodeLoadOrOtherError;
         }
 
-        BasicRecipeValidator validator = new();
+        BasicRecipeValidator validator = CreateValidator();
         YamlRecipeLoader loader = new(validator);
 
         try
@@ -66,7 +75,7 @@ public static class RecipeValidateCommand
             RunewireRecipe recipe = loader.LoadFromFile(recipeFile.FullName);
 
             WriteSuccess($"Recipe is valid: {recipe.Name}");
-            return 0;
+            return ExitCodeSuccess;
         }
         catch (RecipeLoadException ex)
         {
@@ -78,7 +87,7 @@ public static class RecipeValidateCommand
                     WriteBullet($"[{error.Code}] {error.Message}", ConsoleColor.Yellow);
                 }
 
-                return 1;
+                return ExitCodeValidationError;
             }
 
             // Structural / I/O / parse error.
@@ -90,14 +99,21 @@ public static class RecipeValidateCommand
                 WriteDetail($"Inner: {ex.InnerException.Message}");
             }
 
-            return 2;
+            return ExitCodeLoadOrOtherError;
         }
         catch (Exception ex)
         {
             WriteHeader("Unexpected error while validating recipe.", ConsoleColor.Red);
             WriteError(ex.Message);
-            return 2;
+            return ExitCodeLoadOrOtherError;
         }
+    }
+
+    private static BasicRecipeValidator CreateValidator()
+    {
+        // The registry is immutable, so we can safely reuse it across runs, and just
+        // provide a lookup function to the validator.
+        return new BasicRecipeValidator(techniqueName => TechniqueRegistry.GetByName(techniqueName) is not null);
     }
 
     #region Console helpers
@@ -108,21 +124,9 @@ public static class RecipeValidateCommand
 
     private static void WriteDetail(string message) => WriteLineWithColor(message, ConsoleColor.DarkGray);
 
-    private static void WriteHeader(string message, ConsoleColor color)
-    {
-        ConsoleColor original = Console.ForegroundColor;
-        Console.ForegroundColor = color;
-        Console.WriteLine(message);
-        Console.ForegroundColor = original;
-    }
+    private static void WriteHeader(string message, ConsoleColor color) => WriteLineWithColor(message, color);
 
-    private static void WriteBullet(string message, ConsoleColor color)
-    {
-        ConsoleColor original = Console.ForegroundColor;
-        Console.ForegroundColor = color;
-        Console.WriteLine($" - {message}");
-        Console.ForegroundColor = original;
-    }
+    private static void WriteBullet(string message, ConsoleColor color) => WriteLineWithColor($" - {message}", color);
 
     private static void WriteLineWithColor(string message, ConsoleColor color)
     {

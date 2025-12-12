@@ -1,11 +1,7 @@
-using System;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Runewire.Core.Domain.Recipes;
 using Runewire.Orchestrator.NativeInterop;
 using Runewire.Orchestrator.Orchestration;
-using Xunit;
 
 namespace Runewire.Orchestrator.Tests.Orchestration;
 
@@ -15,7 +11,7 @@ public class NativeInjectionEngineTests
     public async Task ExecuteAsync_maps_request_and_success_result_correctly()
     {
         // Arrange
-        var fakeInvoker = new CapturingFakeInvoker
+        CapturingFakeInvoker fakeInvoker = new()
         {
             StatusToReturn = 0,
             ResultToReturn = new RwInjectionResult
@@ -28,11 +24,11 @@ public class NativeInjectionEngineTests
             },
         };
 
-        var engine = new NativeInjectionEngine(fakeInvoker);
+        NativeInjectionEngine engine = new(fakeInvoker);
 
-        var recipeTarget = RecipeTarget.ForProcessName("explorer.exe");
+        RecipeTarget recipeTarget = RecipeTarget.ForProcessName("explorer.exe");
 
-        var request = new InjectionRequest(
+        InjectionRequest request = new(
             RecipeName: "demo-recipe",
             RecipeDescription: "Demo via native engine",
             Target: recipeTarget,
@@ -60,8 +56,8 @@ public class NativeInjectionEngineTests
         Assert.Null(result.ErrorCode);
         Assert.Null(result.ErrorMessage);
 
-        var expectedStarted = DateTimeOffset.FromUnixTimeMilliseconds(1_700_000_000_000);
-        var expectedCompleted = DateTimeOffset.FromUnixTimeMilliseconds(1_700_000_000_500);
+        DateTimeOffset expectedStarted = DateTimeOffset.FromUnixTimeMilliseconds(1_700_000_000_000);
+        DateTimeOffset expectedCompleted = DateTimeOffset.FromUnixTimeMilliseconds(1_700_000_000_500);
 
         Assert.Equal(expectedStarted, result.StartedAtUtc);
         Assert.Equal(expectedCompleted, result.CompletedAtUtc);
@@ -71,12 +67,12 @@ public class NativeInjectionEngineTests
     public async Task ExecuteAsync_returns_failed_result_when_invoker_throws()
     {
         // Arrange
-        var failingInvoker = new ThrowingFakeInvoker(
+        ThrowingFakeInvoker failingInvoker = new(
             new DllNotFoundException("Runewire.Injector.dll")
         );
-        var engine = new NativeInjectionEngine(failingInvoker);
+        NativeInjectionEngine engine = new(failingInvoker);
 
-        var request = new InjectionRequest(
+        InjectionRequest request = new(
             RecipeName: "demo-recipe",
             RecipeDescription: null,
             Target: RecipeTarget.Self(),

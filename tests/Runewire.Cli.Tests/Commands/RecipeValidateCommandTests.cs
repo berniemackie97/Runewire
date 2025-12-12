@@ -1,14 +1,16 @@
-using System.Text;
-
 namespace Runewire.Cli.Tests.Commands;
 
-public class RecipeValidateCommandTests
+/// <summary>
+/// End-to-end tests for the <c>validate</c> CLI command.
+/// </summary>
+public sealed class RecipeValidateCommandTests
 {
     [Fact]
-    public void Validate_valid_recipe_returns_exit_code_0_and_success_output()
+    public async Task Validate_valid_recipe_returns_exit_code_0_and_success_output()
     {
         // Setup
-        string recipePath = CreateTempFile(
+        string recipePath = CLITestHarness.CreateTempRecipeFile(
+            "runewire-validate-test",
             """
             name: demo-recipe
             description: Demo injection into explorer
@@ -26,7 +28,7 @@ public class RecipeValidateCommandTests
         );
 
         // Run
-        (int exitCode, string output) = RunWithCapturedOutput("validate", recipePath);
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("validate", recipePath);
 
         // Assert
         Assert.Equal(0, exitCode);
@@ -35,10 +37,11 @@ public class RecipeValidateCommandTests
     }
 
     [Fact]
-    public void Validate_invalid_recipe_returns_exit_code_1_and_lists_errors()
+    public async Task Validate_invalid_recipe_returns_exit_code_1_and_lists_errors()
     {
         // Setup
-        string recipePath = CreateTempFile(
+        string recipePath = CLITestHarness.CreateTempRecipeFile(
+            "runewire-validate-invalid-test",
             """
             name: ''
             target:
@@ -55,7 +58,7 @@ public class RecipeValidateCommandTests
         );
 
         // Run
-        (int exitCode, string output) = RunWithCapturedOutput("validate", recipePath);
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("validate", recipePath);
 
         // Assert
         Assert.Equal(1, exitCode);
@@ -68,13 +71,13 @@ public class RecipeValidateCommandTests
     }
 
     [Fact]
-    public void Validate_missing_file_returns_exit_code_2_and_error_message()
+    public async Task Validate_missing_file_returns_exit_code_2_and_error_message()
     {
         // Setup
-        string nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".yaml");
+        string recipePath = Path.Combine(Path.GetTempPath(), $"runewire-validate-missing-{Guid.NewGuid():N}.yaml");
 
         // Run
-        (int exitCode, string output) = RunWithCapturedOutput("validate", nonExistentPath);
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("validate", recipePath);
 
         // Assert
         Assert.Equal(2, exitCode);
@@ -82,46 +85,15 @@ public class RecipeValidateCommandTests
     }
 
     [Fact]
-    public void No_arguments_shows_help_and_returns_non_zero()
+    public async Task No_arguments_shows_help_and_returns_non_zero()
     {
         // Run
-        (int exitCode, string output) = RunWithCapturedOutput([]);
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync();
 
         // Assert
         Assert.NotEqual(0, exitCode);
         Assert.Contains("Required command was not provided", output);
         Assert.Contains("Runewire process injection lab CLI", output);
         Assert.Contains("validate <recipe>", output);
-    }
-
-    private static (int exitCode, string stdout) RunWithCapturedOutput(params string[] args)
-    {
-        TextWriter originalOut = Console.Out;
-        TextWriter originalErr = Console.Error;
-
-        StringBuilder sb = new();
-        using StringWriter writer = new(sb);
-
-        Console.SetOut(writer);
-        Console.SetError(writer);
-
-        try
-        {
-            int exitCode = Program.Main(args);
-            writer.Flush();
-            return (exitCode, sb.ToString());
-        }
-        finally
-        {
-            Console.SetOut(originalOut);
-            Console.SetError(originalErr);
-        }
-    }
-
-    private static string CreateTempFile(string contents)
-    {
-        string path = Path.Combine(Path.GetTempPath(), $"runewire-test-{Guid.NewGuid():N}.yaml");
-        File.WriteAllText(path, contents);
-        return path;
     }
 }

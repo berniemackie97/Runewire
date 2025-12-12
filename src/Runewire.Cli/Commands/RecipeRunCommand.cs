@@ -1,6 +1,7 @@
 using System.CommandLine;
 using Runewire.Cli.Infrastructure;
 using Runewire.Core.Domain.Recipes;
+using Runewire.Core.Domain.Techniques;
 using Runewire.Core.Domain.Validation;
 using Runewire.Core.Infrastructure.Recipes;
 using Runewire.Orchestrator.Orchestration;
@@ -14,10 +15,19 @@ public static class RecipeRunCommand
 {
     public const string CommandName = "run";
 
+    // Exit codes for the 'run' command.
+    private const int ExitCodeSuccess = 0;
+    private const int ExitCodeValidationError = 1;
+    private const int ExitCodeLoadError = 2;
+    private const int ExitCodeInjectionFailure = 3;
+
+    // Technique registry is immutable and safe to reuse across invocations.
+    private static readonly BuiltInInjectionTechniqueRegistry TechniqueRegistry = new();
+
     /// <summary>
     /// Creates the 'run' command:
-    ///   runewire run <recipe.yaml>
-    ///   runewire run --native <recipe.yaml>
+    ///   runewire run &lt;recipe.yaml&gt;
+    ///   runewire run --native &lt;recipe.yaml&gt;
     /// </summary>
     public static Command Create()
     {
@@ -39,10 +49,7 @@ public static class RecipeRunCommand
             Description = "Use the native Runewire.Injector engine instead of the dry-run engine.",
         };
 
-        Command command = new(
-            name: CommandName,
-            description: "Execute a Runewire recipe (dry-run injection engine by default)."
-        )
+        Command command = new(name: CommandName, description: "Execute a Runewire recipe (dry-run injection engine by default).")
         {
             recipeArgument,
             nativeOption,
@@ -56,7 +63,7 @@ public static class RecipeRunCommand
             if (recipeFile is null)
             {
                 WriteError("No recipe file specified.");
-                return 2;
+                return ExitCodeLoadError;
             }
 
             return Handle(recipeFile, useNativeEngine);
@@ -79,16 +86,13 @@ public static class RecipeRunCommand
         if (!recipeFile.Exists)
         {
             WriteError($"Recipe file not found: {recipeFile.FullName}");
-            return 2;
+            return ExitCodeLoadError;
         }
 
-        BasicRecipeValidator validator = new();
+        BasicRecipeValidator validator = CreateValidator();
         YamlRecipeLoader loader = new(validator);
 
-        IInjectionEngine engine = useNativeEngine
-            ? new NativeInjectionEngine()
-            : new DryRunInjectionEngine();
-
+        IInjectionEngine engine = CreateInjectionEngine(useNativeEngine);
         RecipeExecutor executor = new(engine);
 
         try
@@ -101,12 +105,15 @@ public static class RecipeRunCommand
                 WriteDetail($"Using native injection engine for recipe '{recipe.Name}'.");
             }
 
+            // The orchestrator is async-first. CLI handlers are currently synchronous,
+            // so we bridge by blocking here. Once we move to async command handlers,
+            // this can be awaited instead.
             InjectionResult result = executor.ExecuteAsync(recipe).GetAwaiter().GetResult();
 
             if (result.Success)
             {
                 WriteSuccess($"Injection succeeded for recipe '{recipe.Name}'.");
-                return 0;
+                return ExitCodeSuccess;
             }
 
             WriteHeader("Injection failed.", ConsoleColor.Red);
@@ -120,7 +127,7 @@ public static class RecipeRunCommand
                 WriteError(result.ErrorMessage!);
             }
 
-            return 3;
+            return ExitCodeInjectionFailure;
         }
         catch (RecipeLoadException ex)
         {
@@ -132,7 +139,7 @@ public static class RecipeRunCommand
                     WriteBullet($"[{error.Code}] {error.Message}", ConsoleColor.Yellow);
                 }
 
-                return 1;
+                return ExitCodeValidationError;
             }
 
             WriteHeader("Failed to load recipe.", ConsoleColor.Red);
@@ -143,41 +150,36 @@ public static class RecipeRunCommand
                 WriteDetail($"Inner: {ex.InnerException.Message}");
             }
 
-            return 2;
+            return ExitCodeLoadError;
         }
         catch (Exception ex)
         {
             WriteHeader("Unexpected error while executing recipe.", ConsoleColor.Red);
             WriteError(ex.Message);
-            return 3;
+            return ExitCodeInjectionFailure;
         }
+    }
+
+    private static IInjectionEngine CreateInjectionEngine(bool useNativeEngine) => useNativeEngine ? new NativeInjectionEngine() : new DryRunInjectionEngine();
+
+    private static BasicRecipeValidator CreateValidator()
+    {
+        // The registry is immutable, so we can safely reuse it across runs, and just
+        // provide a lookup function to the validator.
+        return new BasicRecipeValidator(techniqueName => TechniqueRegistry.GetByName(techniqueName) is not null);
     }
 
     #region Console helpers
 
-    private static void WriteSuccess(string message) =>
-        WriteLineWithColor(message, ConsoleColor.Green);
+    private static void WriteSuccess(string message) => WriteLineWithColor(message, ConsoleColor.Green);
 
     private static void WriteError(string message) => WriteLineWithColor(message, ConsoleColor.Red);
 
-    private static void WriteDetail(string message) =>
-        WriteLineWithColor(message, ConsoleColor.DarkGray);
+    private static void WriteDetail(string message) => WriteLineWithColor(message, ConsoleColor.DarkGray);
 
-    private static void WriteHeader(string message, ConsoleColor color)
-    {
-        ConsoleColor original = Console.ForegroundColor;
-        Console.ForegroundColor = color;
-        Console.WriteLine(message);
-        Console.ForegroundColor = original;
-    }
+    private static void WriteHeader(string message, ConsoleColor color) => WriteLineWithColor(message, color);
 
-    private static void WriteBullet(string message, ConsoleColor color)
-    {
-        ConsoleColor original = Console.ForegroundColor;
-        Console.ForegroundColor = color;
-        Console.WriteLine($" - {message}");
-        Console.ForegroundColor = original;
-    }
+    private static void WriteBullet(string message, ConsoleColor color) => WriteLineWithColor($" - {message}", color);
 
     private static void WriteLineWithColor(string message, ConsoleColor color)
     {
