@@ -24,6 +24,7 @@ dotnet run --project src/Runewire.Cli -- validate demo-recipe.yaml   # validate 
 dotnet run --project src/Runewire.Cli -- run demo-recipe.yaml        # dry-run execution
 dotnet run --project src/Runewire.Cli -- validate demo-recipe.json   # JSON works too
 dotnet run --project src/Runewire.Cli -- techniques                  # list built-in techniques
+dotnet run --project src/Runewire.Cli -- run demo-recipe.yaml --json # machine-readable output
 ```
 
 ## Building

@@ -20,7 +20,8 @@ public sealed class JsonRecipeLoaderTests
     public void LoadFromString_parses_valid_json_and_validates()
     {
         // Setup
-        const string json = """
+        string payloadPath = CreateTempPayloadFile();
+        string jsonTemplate = """
             {
               "name": "demo-recipe",
               "description": "Demo injection into explorer",
@@ -32,7 +33,7 @@ public sealed class JsonRecipeLoaderTests
                 "name": "CreateRemoteThread"
               },
               "payload": {
-                "path": "C:\\lab\\payloads\\demo.dll"
+                "path": "__PAYLOAD__"
               },
               "safety": {
                 "requireInteractiveConsent": true,
@@ -40,6 +41,7 @@ public sealed class JsonRecipeLoaderTests
               }
             }
             """;
+        string json = jsonTemplate.Replace("__PAYLOAD__", EscapeForJson(payloadPath), StringComparison.Ordinal);
 
         JsonRecipeLoader loader = CreateLoader();
 
@@ -52,7 +54,7 @@ public sealed class JsonRecipeLoaderTests
         Assert.Equal(RecipeTargetKind.ProcessByName, recipe.Target.Kind);
         Assert.Equal("explorer.exe", recipe.Target.ProcessName);
         Assert.Equal("CreateRemoteThread", recipe.Technique.Name);
-        Assert.Equal(@"C:\lab\payloads\demo.dll", recipe.PayloadPath);
+        Assert.Equal(payloadPath, recipe.PayloadPath);
         Assert.True(recipe.RequireInteractiveConsent);
         Assert.False(recipe.AllowKernelDrivers);
     }
@@ -131,7 +133,9 @@ public sealed class JsonRecipeLoaderTests
     {
         string path = Path.Combine(Path.GetTempPath(), $"runewire-json-file-{Guid.NewGuid():N}.json");
 
-        const string json = """
+        string payloadPath = CreateTempPayloadFile();
+
+        string jsonTemplate = """
             {
               "name": "file-recipe",
               "target": {
@@ -139,13 +143,14 @@ public sealed class JsonRecipeLoaderTests
                 "processName": "explorer.exe"
               },
               "technique": { "name": "CreateRemoteThread" },
-              "payload": { "path": "C:\\lab\\payloads\\demo.dll" },
+              "payload": { "path": "__PAYLOAD__" },
               "safety": {
                 "requireInteractiveConsent": true,
                 "allowKernelDrivers": false
               }
             }
             """;
+        string json = jsonTemplate.Replace("__PAYLOAD__", EscapeForJson(payloadPath), StringComparison.Ordinal);
 
         File.WriteAllText(path, json);
 
@@ -158,10 +163,40 @@ public sealed class JsonRecipeLoaderTests
             Assert.Equal("file-recipe", recipe.Name);
             Assert.Equal(RecipeTargetKind.ProcessByName, recipe.Target.Kind);
             Assert.Equal("explorer.exe", recipe.Target.ProcessName);
+            Assert.Equal(payloadPath, recipe.PayloadPath);
         }
         finally
         {
             try { File.Delete(path); } catch { /* ignore */ }
         }
     }
+
+    [Fact]
+    public void LoadFromString_throws_when_payload_file_missing()
+    {
+        const string json = """
+            {
+              "name": "demo-recipe",
+              "target": { "kind": "processByName", "processName": "explorer.exe" },
+              "technique": { "name": "CreateRemoteThread" },
+              "payload": { "path": "C:\\lab\\missing\\nope.dll" },
+              "safety": { "requireInteractiveConsent": true, "allowKernelDrivers": false }
+            }
+            """;
+
+        JsonRecipeLoader loader = CreateLoader();
+
+        RecipeLoadException ex = Assert.Throws<RecipeLoadException>(() => loader.LoadFromString(json));
+
+        Assert.Contains(ex.ValidationErrors!, e => e.Code == "PAYLOAD_PATH_NOT_FOUND");
+    }
+
+    private static string CreateTempPayloadFile()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"runewire-payload-{Guid.NewGuid():N}.dll");
+        File.WriteAllText(path, "payload");
+        return path;
+    }
+
+    private static string EscapeForJson(string value) => value.Replace("\\", "\\\\", StringComparison.Ordinal);
 }

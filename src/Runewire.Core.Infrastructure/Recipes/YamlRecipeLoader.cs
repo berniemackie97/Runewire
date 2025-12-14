@@ -42,12 +42,7 @@ public sealed class YamlRecipeLoader(IRecipeValidator validator) : IYamlRecipeLo
 
         RunewireRecipe recipe = RecipeDocumentMapper.MapToDomain(document);
 
-        RecipeValidationResult validationResult = _validator.Validate(recipe);
-        if (!validationResult.IsValid)
-        {
-            throw new RecipeLoadException("Recipe failed validation.", validationResult.Errors);
-        }
-
+        RecipeValidationPipeline.Validate(recipe, _validator);
         return recipe;
     }
 

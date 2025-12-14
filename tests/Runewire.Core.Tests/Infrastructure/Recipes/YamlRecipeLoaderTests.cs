@@ -45,7 +45,8 @@ public sealed class YamlRecipeLoaderTests
     public void LoadFromString_parses_valid_yaml_and_validates()
     {
         // Setup
-        const string yaml = """
+        string payloadPath = CreateTempPayloadFile();
+        string yaml = $"""
             name: demo-recipe
             description: Demo injection into explorer
             target:
@@ -54,7 +55,7 @@ public sealed class YamlRecipeLoaderTests
             technique:
               name: CreateRemoteThread
             payload:
-              path: C:\lab\payloads\demo.dll
+              path: {payloadPath}
             safety:
               requireInteractiveConsent: true
               allowKernelDrivers: false
@@ -71,7 +72,7 @@ public sealed class YamlRecipeLoaderTests
         Assert.Equal(RecipeTargetKind.ProcessByName, recipe.Target.Kind);
         Assert.Equal("explorer.exe", recipe.Target.ProcessName);
         Assert.Equal("CreateRemoteThread", recipe.Technique.Name);
-        Assert.Equal(@"C:\lab\payloads\demo.dll", recipe.PayloadPath);
+        Assert.Equal(payloadPath, recipe.PayloadPath);
         Assert.True(recipe.RequireInteractiveConsent);
         Assert.False(recipe.AllowKernelDrivers);
     }
@@ -138,7 +139,7 @@ public sealed class YamlRecipeLoaderTests
     [Fact]
     public void LoadFromString_throws_with_validation_errors()
     {
-        // Setup – structurally valid, semantically broken.
+        // Setup - structurally valid, semantically broken.
         const string yaml = """
             name: ''
             target:
@@ -164,6 +165,31 @@ public sealed class YamlRecipeLoaderTests
         Assert.Contains(ex.ValidationErrors!, e => e.Code == "TECHNIQUE_NAME_REQUIRED");
         Assert.Contains(ex.ValidationErrors!, e => e.Code == "PAYLOAD_PATH_REQUIRED");
         Assert.Contains(ex.ValidationErrors!, e => e.Code == "SAFETY_KERNEL_DRIVER_CONSENT_REQUIRED");
+    }
+
+    [Fact]
+    public void LoadFromString_throws_when_payload_file_missing()
+    {
+        // Setup - valid recipe shape but payload path does not exist.
+        const string yaml = """
+            name: demo-recipe
+            target:
+              kind: processByName
+              processName: explorer.exe
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: C:\lab\missing\nope.dll
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        YamlRecipeLoader loader = CreateLoader();
+
+        RecipeLoadException ex = Assert.Throws<RecipeLoadException>(() => loader.LoadFromString(yaml));
+
+        Assert.Contains(ex.ValidationErrors!, e => e.Code == "PAYLOAD_PATH_NOT_FOUND");
     }
 
     [Fact]
@@ -199,7 +225,9 @@ public sealed class YamlRecipeLoaderTests
         // Setup
         string path = Path.Combine(Path.GetTempPath(), $"runewire-yaml-file-{Guid.NewGuid():N}.yaml");
 
-        const string yaml = """
+        string payloadPath = CreateTempPayloadFile();
+
+        string yaml = $"""
             name: file-recipe
             target:
               kind: processByName
@@ -207,7 +235,7 @@ public sealed class YamlRecipeLoaderTests
             technique:
               name: CreateRemoteThread
             payload:
-              path: C:\lab\payloads\demo.dll
+              path: {payloadPath}
             safety:
               requireInteractiveConsent: true
               allowKernelDrivers: false
@@ -226,11 +254,19 @@ public sealed class YamlRecipeLoaderTests
             Assert.Equal("file-recipe", recipe.Name);
             Assert.Equal(RecipeTargetKind.ProcessByName, recipe.Target.Kind);
             Assert.Equal("explorer.exe", recipe.Target.ProcessName);
+            Assert.Equal(payloadPath, recipe.PayloadPath);
         }
         finally
         {
             // Best-effort cleanup; ignore IO exceptions on delete.
             try { File.Delete(path); } catch { /* ignore */ }
         }
+    }
+
+    private static string CreateTempPayloadFile()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"runewire-payload-{Guid.NewGuid():N}.dll");
+        File.WriteAllText(path, "payload");
+        return path;
     }
 }

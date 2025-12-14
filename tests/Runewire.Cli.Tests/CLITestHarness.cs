@@ -54,4 +54,14 @@ internal static class CLITestHarness
         File.WriteAllText(path, contents);
         return path;
     }
+
+    /// <summary>
+    /// Create a temp payload file and return the path.
+    /// </summary>
+    public static string CreateTempPayloadFile()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"runewire-payload-{Guid.NewGuid():N}.bin");
+        File.WriteAllText(path, "payload");
+        return path;
+    }
 }

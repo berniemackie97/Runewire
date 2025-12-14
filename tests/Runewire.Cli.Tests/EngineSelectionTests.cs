@@ -9,9 +9,10 @@ public sealed class EngineSelectionTests
     public async Task Run_with_native_flag_prints_native_hint_and_returns_non_error()
     {
         // Setup
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
         string recipePath = CLITestHarness.CreateTempRecipeFile(
             "runewire-engine-test",
-            """
+            $"""
             name: demo-run
             description: Demo run via native engine.
             target:
@@ -20,11 +21,12 @@ public sealed class EngineSelectionTests
             technique:
               name: CreateRemoteThread
             payload:
-              path: C:\lab\payloads\demo.dll
+              path: {payloadPath}
             safety:
               requireInteractiveConsent: true
               allowKernelDrivers: false
-            """
+            """,
+            extension: "yaml"
         );
 
         // Run

@@ -1,11 +1,12 @@
 using System.CommandLine;
 using Runewire.Cli.Infrastructure;
 using Runewire.Core.Infrastructure.Recipes;
-using Runewire.Core.Infrastructure.Validation;
 using Runewire.Domain.Recipes;
 using Runewire.Domain.Validation;
 using Runewire.Orchestrator.Orchestration;
+using Runewire.Orchestrator.Infrastructure.Preflight;
 using Runewire.Orchestrator.Infrastructure.InjectionEngines;
+using System.Text.Json;
 
 namespace Runewire.Cli.Commands;
 
@@ -32,7 +33,7 @@ public static class RecipeRunCommand
     {
         Argument<FileInfo> recipeArgument = new("recipe")
         {
-            Description = "Path to the recipe YAML file to execute.",
+            Description = "Path to the recipe file (YAML or JSON) to execute.",
         };
 
         // This prevents the parser from treating the description as an alias.
@@ -41,16 +42,23 @@ public static class RecipeRunCommand
             Description = "Use the native Runewire.Injector engine instead of the dry-run engine.",
         };
 
-        Command command = new(name: CommandName, description: "Execute a Runewire recipe (dry-run injection engine by default).")
+        Option<bool> jsonOption = new("--json")
+        {
+            Description = "Emit machine-readable JSON output instead of human-readable text.",
+        };
+
+        Command command = new(name: CommandName, description: "Execute a Runewire recipe file (dry-run injection engine by default).")
         {
             recipeArgument,
             nativeOption,
+            jsonOption,
         };
 
         command.SetAction((parseResult, cancellationToken) =>
         {
             FileInfo? recipeFile = parseResult.GetValue(recipeArgument);
             bool useNativeEngine = parseResult.GetValue(nativeOption);
+            bool outputJson = parseResult.GetValue(jsonOption);
 
             if (recipeFile is null)
             {
@@ -58,7 +66,7 @@ public static class RecipeRunCommand
                 return Task.FromResult(ExitCodeLoadError);
             }
 
-            return HandleAsync(recipeFile, useNativeEngine, cancellationToken);
+            return HandleAsync(recipeFile, useNativeEngine, outputJson, cancellationToken);
         });
 
         return command;
@@ -73,51 +81,107 @@ public static class RecipeRunCommand
     /// 2 = load/structural error (IO, YAML parse)
     /// 3 = injection failed (engine reported failure or unexpected error)
     /// </summary>
-    private static async Task<int> HandleAsync(FileInfo recipeFile, bool useNativeEngine, CancellationToken cancellationToken)
+    private static async Task<int> HandleAsync(FileInfo recipeFile, bool useNativeEngine, bool outputJson, CancellationToken cancellationToken)
     {
         if (!recipeFile.Exists)
         {
-            CliConsole.WriteError($"Recipe file not found: {recipeFile.FullName}");
+            if (outputJson)
+            {
+                WriteJson(new { status = "error", message = $"Recipe file not found: {recipeFile.FullName}" });
+            }
+            else
+            {
+                CliConsole.WriteError($"Recipe file not found: {recipeFile.FullName}");
+            }
             return ExitCodeLoadError;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Shared validator factory so CLI / Studio / Server stay in sync.
-        BasicRecipeValidator validator = RecipeValidatorFactory.CreateDefaultValidator();
-        IRecipeLoader loader = RecipeLoaderSelector.CreateForPath(recipeFile.FullName, validator);
+        // Shared loader factory so CLI / Studio / Server stay in sync.
+        IRecipeLoader loader = RecipeLoaderFactory.CreateForPath(recipeFile.FullName);
 
         IInjectionEngine engine = CreateInjectionEngine(useNativeEngine);
+        ITargetPreflightChecker preflight = new ProcessTargetPreflightChecker();
         RecipeExecutor executor = new(engine);
 
         try
         {
             RunewireRecipe recipe = loader.LoadFromFile(recipeFile.FullName);
 
+            TargetPreflightResult preflightResult = preflight.Check(recipe);
+            if (!preflightResult.Success)
+            {
+                ThrowValidation(preflightResult.Errors);
+            }
+
             if (useNativeEngine)
             {
                 // EngineSelectionTests asserts this line. Keep it stable.
-                CliConsole.WriteDetail($"Using native injection engine for recipe '{recipe.Name}'.");
+                if (!outputJson)
+                {
+                    CliConsole.WriteDetail($"Using native injection engine for recipe '{recipe.Name}'.");
+                }
             }
 
             InjectionResult result = await executor.ExecuteAsync(recipe, cancellationToken).ConfigureAwait(false);
 
             if (result.Success)
             {
-                CliConsole.WriteSuccess($"Injection succeeded for recipe '{recipe.Name}'.");
+                if (outputJson)
+                {
+                    WriteJson(new
+                    {
+                        status = "succeeded",
+                        recipeName = recipe.Name,
+                        engine = useNativeEngine ? "native" : "dry-run",
+                        result = new
+                        {
+                            success = result.Success,
+                            errorCode = result.ErrorCode,
+                            errorMessage = result.ErrorMessage,
+                            startedAtUtc = result.StartedAtUtc,
+                            completedAtUtc = result.CompletedAtUtc
+                        }
+                    });
+                }
+                else
+                {
+                    CliConsole.WriteSuccess($"Injection succeeded for recipe '{recipe.Name}'.");
+                }
                 return ExitCodeSuccess;
             }
 
-            CliConsole.WriteHeader("Injection failed.", ConsoleColor.Red);
-
-            if (!string.IsNullOrWhiteSpace(result.ErrorCode))
+            if (outputJson)
             {
-                CliConsole.WriteError($"Code: {result.ErrorCode}");
+                WriteJson(new
+                {
+                    status = "failed",
+                    recipeName = recipe.Name,
+                    engine = useNativeEngine ? "native" : "dry-run",
+                    result = new
+                    {
+                        success = result.Success,
+                        errorCode = result.ErrorCode,
+                        errorMessage = result.ErrorMessage,
+                        startedAtUtc = result.StartedAtUtc,
+                        completedAtUtc = result.CompletedAtUtc
+                    }
+                });
             }
-
-            if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
+            else
             {
-                CliConsole.WriteError(result.ErrorMessage!);
+                CliConsole.WriteHeader("Injection failed.", ConsoleColor.Red);
+
+                if (!string.IsNullOrWhiteSpace(result.ErrorCode))
+                {
+                    CliConsole.WriteError($"Code: {result.ErrorCode}");
+                }
+
+                if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
+                {
+                    CliConsole.WriteError(result.ErrorMessage!);
+                }
             }
 
             return ExitCodeInjectionFailure;
@@ -126,32 +190,68 @@ public static class RecipeRunCommand
         {
             if (ex.ValidationErrors.Count > 0)
             {
-                CliConsole.WriteHeader("Recipe is invalid.", ConsoleColor.Yellow);
-                foreach (RecipeValidationError error in ex.ValidationErrors)
+                if (outputJson)
                 {
-                    CliConsole.WriteBullet($"[{error.Code}] {error.Message}", ConsoleColor.Yellow);
+                    WriteJson(new
+                    {
+                        status = "invalid",
+                        errors = ex.ValidationErrors.Select(e => new { code = e.Code, message = e.Message }).ToArray()
+                    });
+                }
+                else
+                {
+                    CliConsole.WriteHeader("Recipe is invalid.", ConsoleColor.Yellow);
+                    foreach (RecipeValidationError error in ex.ValidationErrors)
+                    {
+                        CliConsole.WriteBullet($"[{error.Code}] {error.Message}", ConsoleColor.Yellow);
+                    }
                 }
 
                 return ExitCodeValidationError;
             }
 
-            CliConsole.WriteHeader("Failed to load recipe.", ConsoleColor.Red);
-            CliConsole.WriteError(ex.Message);
-
-            if (ex.InnerException is not null)
+            if (outputJson)
             {
-                CliConsole.WriteDetail($"Inner: {ex.InnerException.Message}");
+                WriteJson(new { status = "error", message = ex.Message, inner = ex.InnerException?.Message });
             }
+            else
+            {
+                CliConsole.WriteHeader("Failed to load recipe.", ConsoleColor.Red);
+                CliConsole.WriteError(ex.Message);
 
+                if (ex.InnerException is not null)
+                {
+                    CliConsole.WriteDetail($"Inner: {ex.InnerException.Message}");
+                }
+            }
             return ExitCodeLoadError;
         }
         catch (Exception ex)
         {
-            CliConsole.WriteHeader("Unexpected error while executing recipe.", ConsoleColor.Red);
-            CliConsole.WriteError(ex.Message);
+            if (outputJson)
+            {
+                WriteJson(new { status = "error", message = ex.Message });
+            }
+            else
+            {
+                CliConsole.WriteHeader("Unexpected error while executing recipe.", ConsoleColor.Red);
+                CliConsole.WriteError(ex.Message);
+            }
             return ExitCodeInjectionFailure;
         }
     }
 
     private static IInjectionEngine CreateInjectionEngine(bool useNativeEngine) => useNativeEngine ? new NativeInjectionEngine() : new DryRunInjectionEngine();
+
+    private static void ThrowValidation(IEnumerable<RecipeValidationError> errors)
+    {
+        List<RecipeValidationError> list = errors?.ToList() ?? [];
+        throw new RecipeLoadException("Recipe failed preflight.", list);
+    }
+
+    private static void WriteJson(object payload)
+    {
+        string json = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+        Console.WriteLine(json);
+    }
 }

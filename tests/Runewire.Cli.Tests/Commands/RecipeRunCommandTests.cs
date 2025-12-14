@@ -1,4 +1,5 @@
 using Runewire.Cli.Commands;
+using System.Diagnostics;
 
 namespace Runewire.Cli.Tests.Commands;
 
@@ -11,9 +12,10 @@ public sealed class RecipeRunCommandTests
     public async Task Run_valid_recipe_returns_exit_code_0_and_reports_success()
     {
         // Arrange
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
         string recipePath = CLITestHarness.CreateTempRecipeFile(
             "runewire-run-test",
-            """
+            $"""
             name: demo-run
             description: Demo run execution.
             target:
@@ -22,11 +24,12 @@ public sealed class RecipeRunCommandTests
             technique:
               name: CreateRemoteThread
             payload:
-              path: C:\lab\payloads\demo.dll
+              path: {payloadPath}
             safety:
               requireInteractiveConsent: true
               allowKernelDrivers: false
-            """
+            """,
+            extension: "yaml"
         );
 
         // Act
@@ -90,18 +93,22 @@ public sealed class RecipeRunCommandTests
     public async Task Run_json_recipe_returns_exit_code_0_and_reports_success()
     {
         // Arrange
-        string recipePath = CLITestHarness.CreateTempRecipeFile(
-            "runewire-run-json-test",
-            """
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string jsonTemplate = """
             {
               "name": "demo-run-json",
               "description": "Demo run via JSON.",
               "target": { "kind": "processByName", "processName": "explorer.exe" },
               "technique": { "name": "CreateRemoteThread" },
-              "payload": { "path": "C:\\lab\\payloads\\demo.dll" },
+              "payload": { "path": "__PAYLOAD__" },
               "safety": { "requireInteractiveConsent": true, "allowKernelDrivers": false }
             }
-            """,
+            """;
+        string json = jsonTemplate.Replace("__PAYLOAD__", payloadPath.Replace("\\", "\\\\", StringComparison.Ordinal), StringComparison.Ordinal);
+
+        string recipePath = CLITestHarness.CreateTempRecipeFile(
+            "runewire-run-json-test",
+            json,
             extension: "json");
 
         // Act
@@ -111,5 +118,92 @@ public sealed class RecipeRunCommandTests
         Assert.Equal(0, exitCode);
         Assert.Contains("Injection succeeded", output);
         Assert.Contains("demo-run-json", output);
+    }
+
+    [Fact]
+    public async Task Run_when_payload_file_missing_returns_exit_code_1_and_lists_error()
+    {
+        // Arrange
+        string recipePath = CLITestHarness.CreateTempRecipeFile(
+            "runewire-run-missing-payload",
+            """
+            name: demo-run
+            target:
+              kind: processByName
+              processName: explorer.exe
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: C:\lab\missing\nofile.dll
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """);
+
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeRunCommand.CommandName, recipePath);
+
+        // Assert
+        Assert.Equal(1, exitCode);
+        Assert.Contains("PAYLOAD_PATH_NOT_FOUND", output);
+    }
+
+    [Fact]
+    public async Task Run_with_json_flag_outputs_machine_readable_json()
+    {
+        // Arrange
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string yaml = $"""
+            name: json-output
+            target:
+              kind: processByName
+              processName: {Process.GetCurrentProcess().ProcessName}
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: {payloadPath}
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        string recipePath = CLITestHarness.CreateTempRecipeFile("runewire-run-json-output", yaml);
+
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeRunCommand.CommandName, "--json", recipePath);
+
+        // Assert
+        Assert.Equal(0, exitCode);
+        Assert.Contains("\"status\": \"succeeded\"", output);
+        Assert.Contains("\"recipeName\": \"json-output\"", output);
+    }
+
+    [Fact]
+    public async Task Run_preflight_failure_returns_exit_code_1_and_json_when_requested()
+    {
+        // Arrange
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string yaml = $"""
+            name: missing-target
+            target:
+              kind: processById
+              processId: 999999
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: {payloadPath}
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        string recipePath = CLITestHarness.CreateTempRecipeFile("runewire-run-preflight", yaml);
+
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeRunCommand.CommandName, "--json", recipePath);
+
+        // Assert
+        Assert.Equal(1, exitCode);
+        Assert.Contains("TARGET_PID_NOT_FOUND", output);
     }
 }
