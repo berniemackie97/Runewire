@@ -49,10 +49,13 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure CMake (Debug)
-        run: cmake -S native -B build/native -G "Ninja" -DCMAKE_BUILD_TYPE=Debug
+        run: cmake -S native -B build/native -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
 
       - name: Build Runewire.Injector (Debug)
         run: cmake --build build/native --config Debug
+
+      - name: Run native tests
+        run: ctest --test-dir build/native --output-on-failure
 
       - name: Upload native build artifacts
         uses: actions/upload-artifact@v4

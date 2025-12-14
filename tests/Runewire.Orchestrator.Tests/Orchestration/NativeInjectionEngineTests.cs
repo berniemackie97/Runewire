@@ -95,6 +95,78 @@ public class NativeInjectionEngineTests
         Assert.Contains("Runewire.Injector.dll", result.ErrorMessage);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_maps_error_code_from_native_failure()
+    {
+        // Arrange
+        CapturingFakeInvoker fakeInvoker = new()
+        {
+            StatusToReturn = 1,
+            ResultToReturn = new RwInjectionResult
+            {
+                Success = 0,
+                ErrorCode = Marshal.StringToHGlobalAnsi("TECHNIQUE_UNSUPPORTED"),
+                ErrorMessage = Marshal.StringToHGlobalAnsi("Technique not implemented"),
+                StartedAtUtcMs = 1_700_000_000_000,
+                CompletedAtUtcMs = 1_700_000_000_500,
+            },
+        };
+
+        NativeInjectionEngine engine = new(fakeInvoker);
+
+        InjectionRequest request = new(
+            RecipeName: "demo-recipe",
+            RecipeDescription: "Demo",
+            Target: RecipeTarget.Self(),
+            TechniqueName: "UnknownTech",
+            TechniqueParameters: null,
+            PayloadPath: @"C:\lab\payloads\demo.dll",
+            AllowKernelDrivers: false,
+            RequireInteractiveConsent: false
+        );
+
+        // Act
+        InjectionResult result = await engine.ExecuteAsync(request);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal("TECHNIQUE_UNSUPPORTED", result.ErrorCode);
+        Assert.Equal("Technique not implemented", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_maps_launch_process_target()
+    {
+        // Arrange
+        CapturingFakeInvoker fakeInvoker = new()
+        {
+            StatusToReturn = 0,
+            ResultToReturn = new RwInjectionResult { Success = 1 }
+        };
+        NativeInjectionEngine engine = new(fakeInvoker);
+
+        InjectionRequest request = new(
+            RecipeName: "launch-demo",
+            RecipeDescription: "Launch target",
+            Target: RecipeTarget.ForLaunchProcess(@"C:\demo\app.exe", "--run", @"C:\work", startSuspended: true),
+            TechniqueName: "CreateRemoteThread",
+            TechniqueParameters: null,
+            PayloadPath: @"C:\lab\payloads\demo.dll",
+            AllowKernelDrivers: false,
+            RequireInteractiveConsent: true
+        );
+
+        // Act
+        await engine.ExecuteAsync(request);
+
+        // Assert
+        Assert.Equal(RwTargetKind.LaunchProcess, fakeInvoker.TargetKind);
+        Assert.Equal(@"C:\demo\app.exe", fakeInvoker.LaunchPath);
+        Assert.Equal("--run", fakeInvoker.LaunchArguments);
+        Assert.Equal(@"C:\work", fakeInvoker.LaunchWorkingDirectory);
+        Assert.Equal(1, fakeInvoker.LaunchStartSuspended);
+    }
+
     private sealed class CapturingFakeInvoker : INativeInjectorInvoker
     {
         public int StatusToReturn { get; set; }
@@ -106,6 +178,10 @@ public class NativeInjectionEngineTests
         public RwTargetKind TargetKind { get; private set; }
         public uint TargetPid { get; private set; }
         public string? TargetProcessName { get; private set; }
+        public string? LaunchPath { get; private set; }
+        public string? LaunchArguments { get; private set; }
+        public string? LaunchWorkingDirectory { get; private set; }
+        public int LaunchStartSuspended { get; private set; }
         public string? TechniqueName { get; private set; }
         public string? TechniqueParametersJson { get; private set; }
         public string? PayloadPath { get; private set; }
@@ -120,6 +196,10 @@ public class NativeInjectionEngineTests
             TargetKind = request.Target.Kind;
             TargetPid = request.Target.Pid;
             TargetProcessName = PtrToStringOrNull(request.Target.ProcessName);
+            LaunchPath = PtrToStringOrNull(request.Target.LaunchPath);
+            LaunchArguments = PtrToStringOrNull(request.Target.LaunchArguments);
+            LaunchWorkingDirectory = PtrToStringOrNull(request.Target.LaunchWorkingDirectory);
+            LaunchStartSuspended = request.Target.LaunchStartSuspended;
 
             TechniqueName = PtrToStringOrNull(request.TechniqueName);
             TechniqueParametersJson = PtrToStringOrNull(request.TechniqueParametersJson);

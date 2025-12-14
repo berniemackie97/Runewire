@@ -3,6 +3,7 @@ using Runewire.Domain.Recipes;
 using Runewire.Domain.Validation;
 using Runewire.Orchestrator.Infrastructure.InjectionEngines;
 using Runewire.Orchestrator.Infrastructure.Preflight;
+using Runewire.Orchestrator.Infrastructure.Targets;
 using Runewire.Orchestrator.Orchestration;
 
 namespace Runewire.Orchestrator.Infrastructure.Services;
@@ -12,13 +13,15 @@ namespace Runewire.Orchestrator.Infrastructure.Services;
 /// CLI/Studio/Server should come through here to keep behavior consistent.
 /// </summary>
 public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider, ITargetPreflightChecker targetPreflightChecker,
-    IPayloadPreflightChecker payloadPreflightChecker, IInjectionEngineFactory engineFactory, NativeVersionPreflightChecker? nativeVersionPreflightChecker = null)
+    IPayloadPreflightChecker payloadPreflightChecker, IInjectionEngineFactory engineFactory, NativeVersionPreflightChecker? nativeVersionPreflightChecker = null, ITargetController? targetController = null, ITargetObserver? targetObserver = null)
 {
     private readonly IRecipeLoaderProvider _loaderProvider = loaderProvider ?? throw new ArgumentNullException(nameof(loaderProvider));
     private readonly ITargetPreflightChecker _targetPreflightChecker = targetPreflightChecker ?? throw new ArgumentNullException(nameof(targetPreflightChecker));
     private readonly IPayloadPreflightChecker _payloadPreflightChecker = payloadPreflightChecker ?? throw new ArgumentNullException(nameof(payloadPreflightChecker));
     private readonly IInjectionEngineFactory _engineFactory = engineFactory ?? throw new ArgumentNullException(nameof(engineFactory));
     private readonly NativeVersionPreflightChecker? _nativeVersionPreflightChecker = nativeVersionPreflightChecker;
+    private readonly ITargetController _targetController = targetController ?? new ProcessTargetController();
+    private readonly ITargetObserver _targetObserver = targetObserver ?? CreateDefaultObserver();
 
     /// <summary>
     /// Load and validate a recipe from the provided path (including preflight).
@@ -41,7 +44,7 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
             ThrowValidation(payloadPreflight.Errors);
         }
 
-        IReadOnlyList<RecipeValidationError> versionErrors = CheckNativeVersion(recipe.Technique.Name);
+        IReadOnlyList<RecipeValidationError> versionErrors = CheckNativeVersion(recipe);
         if (versionErrors.Count > 0)
         {
             ThrowValidation(versionErrors);
@@ -62,10 +65,10 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
         RunewireRecipe recipe = validation.Recipe;
 
         IInjectionEngine engine = _engineFactory.Create(useNativeEngine, engineOptions);
-        RecipeExecutor executor = new(engine);
+        RecipeExecutor executor = new(engine, _targetController, _targetObserver);
 
-        InjectionResult result = await executor.ExecuteAsync(recipe, cancellationToken).ConfigureAwait(false);
-        return new RecipeRunOutcome(recipe, result, useNativeEngine ? "native" : "dry-run", validation.Preflight);
+        RecipeExecutionResult executionResult = await executor.ExecuteAsync(recipe, cancellationToken).ConfigureAwait(false);
+        return new RecipeRunOutcome(recipe, executionResult.OverallResult, executionResult.StepResults, useNativeEngine ? "native" : "dry-run", validation.Preflight);
     }
 
     private static void ThrowValidation(IEnumerable<RecipeValidationError> errors)
@@ -74,13 +77,38 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
         throw new RecipeLoadException("Recipe failed preflight.", list);
     }
 
-    private IReadOnlyList<RecipeValidationError> CheckNativeVersion(string techniqueName)
+    private IReadOnlyList<RecipeValidationError> CheckNativeVersion(RunewireRecipe recipe)
     {
         if (_nativeVersionPreflightChecker is null)
         {
             return Array.Empty<RecipeValidationError>();
         }
 
-        return _nativeVersionPreflightChecker.Check(techniqueName);
+        HashSet<string> techniqueNames = new(StringComparer.OrdinalIgnoreCase)
+        {
+            recipe.Technique.Name
+        };
+
+        if (recipe.Steps is not null)
+        {
+            foreach (RecipeStep step in recipe.Steps.Where(s => s.Kind == RecipeStepKind.InjectTechnique && !string.IsNullOrWhiteSpace(s.TechniqueName)))
+            {
+                techniqueNames.Add(step.TechniqueName!);
+            }
+        }
+
+        List<RecipeValidationError> errors = [];
+        foreach (string techniqueName in techniqueNames)
+        {
+            errors.AddRange(_nativeVersionPreflightChecker.Check(techniqueName));
+        }
+        return errors;
+    }
+
+    private static ITargetObserver CreateDefaultObserver()
+    {
+        return OperatingSystem.IsWindows()
+            ? new ProcessTargetObserver()
+            : new UnixTargetObserver();
     }
 }

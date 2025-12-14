@@ -19,4 +19,9 @@ public enum RecipeTargetKind
     /// Target by process name match.
     /// </summary>
     ProcessByName = 2,
+
+    /// <summary>
+    /// Launch a new process as the target.
+    /// </summary>
+    LaunchProcess = 3,
 }

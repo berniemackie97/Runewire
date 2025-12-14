@@ -9,6 +9,7 @@ using Runewire.Orchestrator.Infrastructure.InjectionEngines;
 using Runewire.Orchestrator.Infrastructure.Preflight;
 using Runewire.Orchestrator.Infrastructure.Services;
 using System.Text.Json;
+using Runewire.Orchestrator.Infrastructure.Targets;
 
 namespace Runewire.Cli.Commands;
 
@@ -113,7 +114,8 @@ public static class RecipeRunCommand
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new PayloadPreflightChecker(), new InjectionEngineFactory(), new NativeVersionPreflightChecker(new FileNativeVersionProvider(), new Core.Infrastructure.Techniques.BuiltInInjectionTechniqueRegistry()));
+        ITargetObserver observer = OperatingSystem.IsWindows() ? new ProcessTargetObserver() : new UnixTargetObserver();
+        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new PayloadPreflightChecker(), new InjectionEngineFactory(), new NativeVersionPreflightChecker(new FileNativeVersionProvider(), new Core.Infrastructure.Techniques.BuiltInInjectionTechniqueRegistry()), new ProcessTargetController(), observer);
         InjectionEngineOptions? engineOptions = (!useNativeEngine && outputJson) ? new InjectionEngineOptions(TextWriter.Null) : null;
 
         try

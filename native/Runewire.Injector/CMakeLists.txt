@@ -24,3 +24,6 @@ set_target_properties(Runewire.Injector PROPERTIES
     PREFIX ""
 )
 
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

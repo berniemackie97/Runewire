@@ -226,4 +226,46 @@ public sealed class RecipeRunCommandTests
         Assert.Equal(1, exitCode);
         Assert.Contains("TARGET_PID_NOT_FOUND", output);
     }
+
+    [Fact]
+    public async Task Run_with_steps_in_json_mode_includes_step_results()
+    {
+        // Arrange
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string processName = Process.GetCurrentProcess().ProcessName;
+        string yaml = $"""
+            name: workflow-json
+            target:
+              kind: processByName
+              processName: {processName}
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: {payloadPath}
+            steps:
+              - kind: injectTechnique
+                techniqueName: CreateRemoteThread
+                payloadPath: {payloadPath}
+              - kind: wait
+                condition:
+                  kind: file
+                  value: {payloadPath}
+              - kind: injectTechnique
+                techniqueName: CreateRemoteThread
+                payloadPath: {payloadPath}
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        string recipePath = CLITestHarness.CreateTempRecipeFile("runewire-run-steps-json", yaml);
+
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeRunCommand.CommandName, "--json", recipePath);
+
+        // Assert
+        Assert.Equal(0, exitCode);
+        Assert.Contains("\"steps\"", output, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("InjectTechnique", output);
+    }
 }

@@ -211,4 +211,39 @@ public sealed class PayloadPreflightCheckerTests
             try { File.Delete(tempPayload); } catch { /* ignore */ }
         }
     }
+
+    [Fact]
+    public void Check_validates_step_payloads()
+    {
+        // Primary payload exists, step payload is missing -> should fail on step payload.
+        using Process current = Process.GetCurrentProcess();
+        string primaryPayload = Path.Combine(Path.GetTempPath(), $"runewire-payload-{Guid.NewGuid():N}.exe");
+        File.Copy(current.MainModule!.FileName!, primaryPayload);
+
+        string missingStepPayload = Path.Combine(Path.GetTempPath(), $"runewire-step-{Guid.NewGuid():N}.dll");
+
+        RunewireRecipe recipe = new(
+            "demo",
+            null,
+            RecipeTarget.Self(),
+            new InjectionTechnique("CreateRemoteThread"),
+            primaryPayload,
+            RequireInteractiveConsent: false,
+            AllowKernelDrivers: false,
+            Steps: new List<RecipeStep> { RecipeStep.Inject("StepTech", missingStepPayload) });
+
+        PayloadPreflightChecker checker = new();
+
+        try
+        {
+            PayloadPreflightResult result = checker.Check(recipe);
+
+            Assert.False(result.Success);
+            Assert.Contains(result.Errors, e => e.Code == "PAYLOAD_PATH_NOT_FOUND");
+        }
+        finally
+        {
+            try { File.Delete(primaryPayload); } catch { /* ignore */ }
+        }
+    }
 }

@@ -20,6 +20,7 @@ public sealed class ProcessTargetPreflightChecker : ITargetPreflightChecker
                 RecipeTargetKind.Self => TargetPreflightResult.Ok(),
                 RecipeTargetKind.ProcessById => CheckProcessById(recipe.Target.ProcessId),
                 RecipeTargetKind.ProcessByName => CheckProcessByName(recipe.Target.ProcessName),
+                RecipeTargetKind.LaunchProcess => CheckLaunchPath(recipe.Target.LaunchPath),
                 _ => TargetPreflightResult.Failed(new RecipeValidationError("TARGET_KIND_UNKNOWN", $"Unknown target kind '{recipe.Target.Kind}'.")),
             };
         }
@@ -27,6 +28,21 @@ public sealed class ProcessTargetPreflightChecker : ITargetPreflightChecker
         {
             return TargetPreflightResult.Failed(new RecipeValidationError("TARGET_PRECHECK_FAILED", $"Preflight failed: {ex.Message}"));
         }
+    }
+
+    private static TargetPreflightResult CheckLaunchPath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return TargetPreflightResult.Failed(new RecipeValidationError("TARGET_LAUNCH_PATH_REQUIRED", "Launch path is required."));
+        }
+
+        if (!File.Exists(path))
+        {
+            return TargetPreflightResult.Failed(new RecipeValidationError("TARGET_LAUNCH_PATH_NOT_FOUND", $"Launch path not found: {path}"));
+        }
+
+        return TargetPreflightResult.Ok();
     }
 
     private static TargetPreflightResult CheckProcessById(int? processId)

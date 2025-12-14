@@ -94,4 +94,104 @@ public enum InjectionTechniqueId
     /// macOS Mach-O thread creation injection.
     /// </summary>
     MachThreadInject = 17,
+
+    /// <summary>
+    /// Inline/trampoline hook for a specific function.
+    /// </summary>
+    InlineHook = 18,
+
+    /// <summary>
+    /// Import Address Table hook.
+    /// </summary>
+    IatHook = 19,
+
+    /// <summary>
+    /// Export Address Table hook.
+    /// </summary>
+    EatHook = 20,
+
+    /// <summary>
+    /// Winsock redirect/shim.
+    /// </summary>
+    WinsockRedirect = 21,
+
+    /// <summary>
+    /// HTTP/HTTPS redirect shim (WinINet/WinHTTP).
+    /// </summary>
+    HttpRedirect = 22,
+
+    /// <summary>
+    /// DNS override shim.
+    /// </summary>
+    DnsOverride = 23,
+
+    /// <summary>
+    /// File system redirect shim.
+    /// </summary>
+    FileSystemRedirect = 24,
+
+    /// <summary>
+    /// TLS bypass shim.
+    /// </summary>
+    TlsBypass = 25,
+
+    /// <summary>
+    /// Early bird CreateProcess/entry hijack.
+    /// </summary>
+    EarlyBirdCreateProcess = 26,
+
+    /// <summary>
+    /// Early bird QueueUserAPC before main.
+    /// </summary>
+    EarlyBirdQueueApc = 27,
+
+    /// <summary>
+    /// Section copy and execute without mapping.
+    /// </summary>
+    SectionCopyExecute = 28,
+
+    /// <summary>
+    /// Threadpool APC hijack.
+    /// </summary>
+    ThreadpoolApc = 29,
+
+    /// <summary>
+    /// Module stomp with restore capability.
+    /// </summary>
+    ModuleStompRestore = 30,
+
+    /// <summary>
+    /// Call exported init on payload with parameters.
+    /// </summary>
+    CallExportInit = 31,
+
+    /// <summary>
+    /// Linux LD_PRELOAD style launch injection.
+    /// </summary>
+    LdPreloadLaunch = 32,
+
+    /// <summary>
+    /// macOS DYLD_INSERT_LIBRARIES launch injection.
+    /// </summary>
+    DyldInsertLaunch = 33,
+
+    /// <summary>
+    /// ptrace-based thread hijack.
+    /// </summary>
+    PtraceThreadHijack = 34,
+
+    /// <summary>
+    /// Memory scan and optional patch.
+    /// </summary>
+    MemoryScanPatch = 35,
+
+    /// <summary>
+    /// Anti-hook detector.
+    /// </summary>
+    AntiHookDetect = 36,
+
+    /// <summary>
+    /// Snapshot and restore original bytes/sections.
+    /// </summary>
+    SnapshotRestore = 37,
 }

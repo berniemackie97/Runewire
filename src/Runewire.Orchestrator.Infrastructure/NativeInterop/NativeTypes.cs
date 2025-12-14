@@ -10,6 +10,7 @@ internal enum RwTargetKind : int
     Self = 0,
     ProcessId = 1,
     ProcessName = 2,
+    LaunchProcess = 3,
 }
 
 /// <summary>
@@ -21,6 +22,10 @@ internal struct RwTarget
     public RwTargetKind Kind;
     public uint Pid;
     public IntPtr ProcessName;
+    public IntPtr LaunchPath;
+    public IntPtr LaunchArguments;
+    public IntPtr LaunchWorkingDirectory;
+    public int LaunchStartSuspended;
 }
 
 /// <summary>

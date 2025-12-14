@@ -12,6 +12,7 @@ internal sealed class RecipeTargetDocument
     /// self
     /// processById
     /// processByName
+    /// launchProcess
     /// </summary>
     public string? Kind { get; set; }
 
@@ -24,4 +25,15 @@ internal sealed class RecipeTargetDocument
     /// Used when Kind is processByName.
     /// </summary>
     public string? ProcessName { get; set; }
+
+    /// <summary>
+    /// Used when Kind is launchProcess.
+    /// </summary>
+    public string? Path { get; set; }
+
+    public string? Arguments { get; set; }
+
+    public string? WorkingDirectory { get; set; }
+
+    public bool? StartSuspended { get; set; }
 }

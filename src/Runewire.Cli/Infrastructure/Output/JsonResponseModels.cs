@@ -17,6 +17,7 @@ public sealed record PreflightSummaryDto(
     string? ProcessArchitecture
 );
 public sealed record InjectionResultDto(bool Success, string? ErrorCode, string? ErrorMessage, DateTimeOffset StartedAtUtc, DateTimeOffset CompletedAtUtc);
+public sealed record StepResultDto(int Index, string Kind, bool Success, string? ErrorCode, string? ErrorMessage, DateTimeOffset StartedAtUtc, DateTimeOffset CompletedAtUtc, InjectionResultDto? Injection);
 public sealed record TechniqueParameterDto(string Name, string Description, bool Required, string DataType);
 public sealed record TechniqueDto(string Name, string DisplayName, string Category, string Description, bool RequiresKernelMode, bool RequiresDriver, string? MinNativeVersion, bool Implemented, IReadOnlyList<string> Platforms, IReadOnlyList<TechniqueParameterDto> Parameters);
 
@@ -37,6 +38,7 @@ public sealed record RunResponseDto(
     MetaDto Meta,
     PreflightSummaryDto? Preflight,
     InjectionResultDto? Result,
+    IReadOnlyList<StepResultDto>? Steps,
     IReadOnlyList<ErrorDto>? Errors,
     string? Message,
     string? Inner
@@ -54,13 +56,13 @@ public static class JsonResponseFactory
     public static ValidationResponseDto ValidationError(string message, Exception? ex) => new("error", null, BuildMeta(), null, null, message, ex?.Message);
 
     public static RunResponseDto RunSuccess(RecipeRunOutcome outcome) =>
-        new("succeeded", outcome.Recipe.Name, outcome.Engine, BuildMeta(), MapPreflight(outcome.Preflight), MapInjectionResult(outcome.InjectionResult), null, null, null);
+        new("succeeded", outcome.Recipe.Name, outcome.Engine, BuildMeta(), MapPreflight(outcome.Preflight), MapInjectionResult(outcome.InjectionResult), MapSteps(outcome.StepResults), null, null, null);
 
     public static RunResponseDto RunFailure(RecipeRunOutcome outcome) =>
-        new("failed", outcome.Recipe.Name, outcome.Engine, BuildMeta(), MapPreflight(outcome.Preflight), MapInjectionResult(outcome.InjectionResult), null, null, null);
+        new("failed", outcome.Recipe.Name, outcome.Engine, BuildMeta(), MapPreflight(outcome.Preflight), MapInjectionResult(outcome.InjectionResult), MapSteps(outcome.StepResults), null, null, null);
 
     public static RunResponseDto RunError(string recipeName, string engine, string message, Exception? ex = null) =>
-        new("error", recipeName, engine, BuildMeta(), null, null, null, message, ex?.Message);
+        new("error", recipeName, engine, BuildMeta(), null, null, null, null, message, ex?.Message);
 
     public static TechniqueListResponseDto TechniqueList(IEnumerable<InjectionTechniqueDescriptor> techniques) =>
         new("ok", BuildMeta(), techniques.Select(MapTechnique).ToArray());
@@ -96,4 +98,18 @@ public static class JsonResponseFactory
 
     private static TechniqueParameterDto MapParameter(TechniqueParameter parameter) =>
         new(parameter.Name, parameter.Description, parameter.Required, parameter.DataType);
+
+    private static IReadOnlyList<StepResultDto>? MapSteps(IReadOnlyList<RecipeStepResult> steps)
+    {
+        if (steps is null || steps.Count == 0)
+        {
+            return null;
+        }
+
+        return steps.Select(step =>
+        {
+            InjectionResultDto? injection = step.InjectionResult is null ? null : MapInjectionResult(step.InjectionResult);
+            return new StepResultDto(step.Index, step.Kind.ToString(), step.Success, step.ErrorCode, step.ErrorMessage, step.StartedAtUtc, step.CompletedAtUtc, injection);
+        }).ToArray();
+    }
 }

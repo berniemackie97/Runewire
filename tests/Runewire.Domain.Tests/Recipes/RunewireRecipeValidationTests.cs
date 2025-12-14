@@ -149,6 +149,96 @@ public class RunewireRecipeValidationTests
     }
 
     [Fact]
+    public void Launch_process_requires_path()
+    {
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Target = RecipeTarget.ForLaunchProcess("")
+        };
+        BasicRecipeValidator validator = new();
+
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "TARGET_LAUNCH_PATH_REQUIRED");
+    }
+
+    [Fact]
+    public void Steps_inject_requires_technique_and_payload()
+    {
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Steps = new List<RecipeStep> { RecipeStep.Inject("", "") }
+        };
+        BasicRecipeValidator validator = new();
+
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "STEP_TECHNIQUE_NAME_REQUIRED");
+        Assert.Contains(result.Errors, e => e.Code == "STEP_PAYLOAD_PATH_REQUIRED");
+    }
+
+    [Fact]
+    public void Steps_wait_requires_duration()
+    {
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Steps = new List<RecipeStep> { RecipeStep.Wait(0) }
+        };
+        BasicRecipeValidator validator = new();
+
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "STEP_WAIT_REQUIRED");
+    }
+
+    [Fact]
+    public void Steps_inject_requires_registered_technique_when_registry_is_available()
+    {
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Steps = new List<RecipeStep> { RecipeStep.Inject("UnknownStepTech", @"C:\payloads\step.dll") }
+        };
+
+        FakeRegistry registry = new([]);
+        BasicRecipeValidator validator = new(registry);
+
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "STEP_TECHNIQUE_UNKNOWN");
+    }
+
+    [Fact]
+    public void Steps_inject_enforces_required_parameters()
+    {
+        InjectionTechniqueDescriptor technique = new(
+            InjectionTechniqueId.Unknown,
+            name: "StepTech",
+            displayName: "Step tech",
+            category: "User-mode",
+            description: "Test step technique",
+            requiresKernelMode: false,
+            platforms: new[] { TechniquePlatform.Windows },
+            parameters: new[] { new TechniqueParameter("param", "Required param") });
+
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Steps = new List<RecipeStep> { RecipeStep.Inject(technique.Name, @"C:\payloads\step.dll", new Dictionary<string, string> { { "param", "" } }) }
+        };
+
+        FakeRegistry registry = new([technique]);
+        BasicRecipeValidator validator = new(registry);
+
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "STEP_TECHNIQUE_PARAM_REQUIRED");
+    }
+
+    [Fact]
     public void Allowing_kernel_drivers_requires_interactive_consent()
     {
         // Arrange
@@ -311,6 +401,39 @@ public class RunewireRecipeValidationTests
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "TECHNIQUE_DRIVER_REQUIRED");
+    }
+
+    [Fact]
+    public void Steps_wait_condition_requires_value()
+    {
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Steps = new List<RecipeStep> { RecipeStep.WaitFor(new WaitCondition(WaitConditionKind.ModuleLoaded, "")) }
+        };
+        BasicRecipeValidator validator = new();
+
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "STEP_WAIT_CONDITION_VALUE_REQUIRED");
+    }
+
+    [Fact]
+    public void Steps_wait_cannot_have_both_duration_and_condition()
+    {
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Steps = new List<RecipeStep>
+            {
+                new RecipeStep(RecipeStepKind.Wait){ WaitMilliseconds = 100, Condition = new WaitCondition(WaitConditionKind.FileExists, @"C:\temp\flag") }
+            }
+        };
+        BasicRecipeValidator validator = new();
+
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "STEP_WAIT_AMBIGUOUS");
     }
 
     private sealed class FakeRegistry(IReadOnlyList<InjectionTechniqueDescriptor> techniques) : IInjectionTechniqueRegistry

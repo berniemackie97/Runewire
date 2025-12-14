@@ -21,7 +21,8 @@ extern "C" {
     {
         RW_TARGET_SELF = 0,
         RW_TARGET_PROCESS_ID = 1,
-        RW_TARGET_PROCESS_NAME = 2
+        RW_TARGET_PROCESS_NAME = 2,
+        RW_TARGET_LAUNCH_PROCESS = 3
     } rw_target_kind;
 
     /// Target description.
@@ -36,6 +37,18 @@ extern "C" {
         /// Process name. Only meaningful when kind == RW_TARGET_PROCESS_NAME.
         /// UTF-8, owned by the caller, null-terminated.
         const char* process_name;
+
+        /// Launch path. Only meaningful when kind == RW_TARGET_LAUNCH_PROCESS.
+        const char* launch_path;
+
+        /// Launch arguments. Only meaningful when kind == RW_TARGET_LAUNCH_PROCESS.
+        const char* launch_arguments;
+
+        /// Launch working directory. Only meaningful when kind == RW_TARGET_LAUNCH_PROCESS.
+        const char* launch_working_directory;
+
+        /// Non-zero to start suspended. Only meaningful when kind == RW_TARGET_LAUNCH_PROCESS.
+        int launch_start_suspended;
     } rw_target;
 
     /// Injection request description. All strings are UTF-8 and owned by the caller.
@@ -54,6 +67,9 @@ extern "C" {
         /// Logical injection technique identifier, e.g. "CreateRemoteThread".
         /// Required.
         const char* technique_name;
+
+        /// Optional JSON blob of technique parameters (UTF-8). May be NULL.
+        const char* technique_parameters_json;
 
         /// Fully-qualified path to the payload to inject. Required.
         const char* payload_path;

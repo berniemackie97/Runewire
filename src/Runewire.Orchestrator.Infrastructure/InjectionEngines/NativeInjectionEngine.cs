@@ -122,6 +122,10 @@ public sealed class NativeInjectionEngine : IInjectionEngine
                 Kind = RwTargetKind.Self,
                 Pid = 0,
                 ProcessName = IntPtr.Zero,
+                LaunchPath = IntPtr.Zero,
+                LaunchArguments = IntPtr.Zero,
+                LaunchWorkingDirectory = IntPtr.Zero,
+                LaunchStartSuspended = 0
             },
 
             RecipeTargetKind.ProcessById => new RwTarget
@@ -129,6 +133,10 @@ public sealed class NativeInjectionEngine : IInjectionEngine
                 Kind = RwTargetKind.ProcessId,
                 Pid = (uint)(target.ProcessId ?? throw new InvalidOperationException("RecipeTarget.ProcessId must be set when Kind is ProcessById.")),
                 ProcessName = IntPtr.Zero,
+                LaunchPath = IntPtr.Zero,
+                LaunchArguments = IntPtr.Zero,
+                LaunchWorkingDirectory = IntPtr.Zero,
+                LaunchStartSuspended = 0
             },
 
             RecipeTargetKind.ProcessByName => new RwTarget
@@ -136,6 +144,21 @@ public sealed class NativeInjectionEngine : IInjectionEngine
                 Kind = RwTargetKind.ProcessName,
                 Pid = 0,
                 ProcessName = alloc(target.ProcessName),
+                LaunchPath = IntPtr.Zero,
+                LaunchArguments = IntPtr.Zero,
+                LaunchWorkingDirectory = IntPtr.Zero,
+                LaunchStartSuspended = 0
+            },
+
+            RecipeTargetKind.LaunchProcess => new RwTarget
+            {
+                Kind = RwTargetKind.LaunchProcess,
+                Pid = 0,
+                ProcessName = IntPtr.Zero,
+                LaunchPath = alloc(target.LaunchPath),
+                LaunchArguments = alloc(target.LaunchArguments),
+                LaunchWorkingDirectory = alloc(target.LaunchWorkingDirectory),
+                LaunchStartSuspended = target.LaunchStartSuspended ? 1 : 0
             },
 
             _ => throw new ArgumentOutOfRangeException(nameof(target), target.Kind, "Unsupported recipe target kind."),

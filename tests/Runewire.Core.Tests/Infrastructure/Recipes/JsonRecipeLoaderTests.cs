@@ -172,6 +172,71 @@ public sealed class JsonRecipeLoaderTests
     }
 
     [Fact]
+    public void LoadFromString_supports_launch_process_target()
+    {
+        string payloadPath = CreateTempPayloadFile();
+        string exePath = CreateTempPayloadFile();
+
+        string json = """
+            {
+              "name": "launch-recipe",
+              "target": {
+                "kind": "launchProcess",
+                "path": "__EXE__",
+                "arguments": "--foo bar",
+                "workingDirectory": "C:\\\\lab\\\\work",
+                "startSuspended": true
+              },
+              "technique": { "name": "CreateRemoteThread" },
+              "payload": { "path": "__PAYLOAD__" },
+              "safety": { "requireInteractiveConsent": true, "allowKernelDrivers": false }
+            }
+            """;
+        json = json.Replace("__EXE__", EscapeForJson(exePath), StringComparison.Ordinal)
+                   .Replace("__PAYLOAD__", EscapeForJson(payloadPath), StringComparison.Ordinal);
+
+        JsonRecipeLoader loader = CreateLoader();
+
+        RunewireRecipe recipe = loader.LoadFromString(json);
+
+        Assert.Equal(RecipeTargetKind.LaunchProcess, recipe.Target.Kind);
+        Assert.Equal(exePath, recipe.Target.LaunchPath);
+        Assert.Equal("--foo bar", recipe.Target.LaunchArguments);
+        Assert.Equal(@"C:\lab\work", recipe.Target.LaunchWorkingDirectory?.Replace("\\\\", "\\", StringComparison.Ordinal));
+        Assert.True(recipe.Target?.LaunchStartSuspended);
+    }
+
+    [Fact]
+    public void LoadFromString_maps_steps()
+    {
+        string payloadPath = CreateTempPayloadFile();
+        string json = """
+            {
+              "name": "steps-recipe",
+              "target": { "kind": "processByName", "processName": "explorer.exe" },
+              "technique": { "name": "CreateRemoteThread" },
+              "payload": { "path": "__PAYLOAD__" },
+              "steps": [
+                { "kind": "inject", "techniqueName": "CreateRemoteThread", "payloadPath": "__PAYLOAD__" },
+                { "kind": "wait", "waitMilliseconds": 250 }
+              ],
+              "safety": { "requireInteractiveConsent": true, "allowKernelDrivers": false }
+            }
+            """;
+        json = json.Replace("__PAYLOAD__", EscapeForJson(payloadPath), StringComparison.Ordinal);
+
+        JsonRecipeLoader loader = CreateLoader();
+
+        RunewireRecipe recipe = loader.LoadFromString(json);
+
+        Assert.NotNull(recipe.Steps);
+        Assert.Equal(2, recipe.Steps!.Count);
+        Assert.Equal(RecipeStepKind.InjectTechnique, recipe.Steps[0].Kind);
+        Assert.Equal(RecipeStepKind.Wait, recipe.Steps[1].Kind);
+        Assert.Equal(250, recipe.Steps[1].WaitMilliseconds);
+    }
+
+    [Fact]
     public void LoadFromString_throws_when_payload_file_missing()
     {
         const string json = """

@@ -24,7 +24,7 @@ public sealed class RecipeExecutionServiceTests
             AllowKernelDrivers: false));
 
         FakePreflightChecker preflight = new(TargetPreflightResult.Failed(new RecipeValidationError("TARGET_PID_NOT_FOUND", "missing")));
-        RecipeExecutionService service = new(loaderProvider, preflight, new FakePayloadPreflightChecker(), new FakeEngineFactory());
+        RecipeExecutionService service = new(loaderProvider, preflight, new FakePayloadPreflightChecker(), new FakeEngineFactory(), targetController: new NullTargetController(), targetObserver: new NullTargetObserver());
 
         // Act/Assert
         RecipeLoadException ex = Assert.Throws<RecipeLoadException>(() => service.Validate("demo.yaml"));
@@ -45,7 +45,7 @@ public sealed class RecipeExecutionServiceTests
             AllowKernelDrivers: false);
 
         FakeLoaderProvider loaderProvider = new(recipe);
-        RecipeExecutionService service = new(loaderProvider, new FakeTargetPreflightChecker(TargetPreflightResult.Ok()), new FakePayloadPreflightChecker(), new FakeEngineFactory());
+        RecipeExecutionService service = new(loaderProvider, new FakeTargetPreflightChecker(TargetPreflightResult.Ok()), new FakePayloadPreflightChecker(), new FakeEngineFactory(), targetController: new NullTargetController(), targetObserver: new NullTargetObserver());
 
         // Act
         RecipeRunOutcome outcome = await service.RunAsync("demo.yaml", useNativeEngine: false);

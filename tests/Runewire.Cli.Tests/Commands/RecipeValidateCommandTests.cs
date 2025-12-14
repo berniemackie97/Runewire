@@ -264,4 +264,30 @@ public sealed class RecipeValidateCommandTests
         Assert.Equal(1, exitCode);
         Assert.Contains("TECHNIQUE_DRIVER_REQUIRED", output);
     }
+
+    [Fact]
+    public async Task Validate_launch_target_with_missing_path_fails()
+    {
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string yaml = $"""
+            name: missing-launch-path
+            target:
+              kind: launchProcess
+              path: ''
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: {payloadPath}
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        string recipePath = CLITestHarness.CreateTempRecipeFile("runewire-validate-launch-missing", yaml);
+
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeValidateCommand.CommandName, recipePath);
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("TARGET_LAUNCH_PATH_REQUIRED", output);
+    }
 }

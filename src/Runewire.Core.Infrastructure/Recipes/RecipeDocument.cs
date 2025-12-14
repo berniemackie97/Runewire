@@ -18,4 +18,6 @@ internal sealed class RecipeDocument
     public RecipePayloadDocument? Payload { get; set; }
 
     public RecipeSafetyDocument? Safety { get; set; }
+
+    public List<RecipeStepDocument>? Steps { get; set; }
 }

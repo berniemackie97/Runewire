@@ -18,9 +18,31 @@ public sealed class PayloadPreflightChecker : IPayloadPreflightChecker
     {
         ArgumentNullException.ThrowIfNull(recipe);
 
-        string payloadPath = recipe.PayloadPath ?? string.Empty;
         string processArch = RuntimeInformation.ProcessArchitecture.ToString();
 
+        PayloadPreflightResult primary = CheckSinglePayload(recipe.PayloadPath ?? string.Empty, processArch);
+        if (!primary.Success)
+        {
+            return primary;
+        }
+
+        if (recipe.Steps is not null)
+        {
+            foreach (RecipeStep step in recipe.Steps.Where(s => s.Kind == RecipeStepKind.InjectTechnique && !string.IsNullOrWhiteSpace(s.PayloadPath)))
+            {
+                PayloadPreflightResult stepResult = CheckSinglePayload(step.PayloadPath!, processArch);
+                if (!stepResult.Success)
+                {
+                    return stepResult;
+                }
+            }
+        }
+
+        return primary;
+    }
+
+    private static PayloadPreflightResult CheckSinglePayload(string payloadPath, string processArch)
+    {
         if (!File.Exists(payloadPath))
         {
             return PayloadPreflightResult.Failed(null, processArch, new RecipeValidationError("PAYLOAD_PATH_NOT_FOUND", $"Payload file not found: {payloadPath}"));

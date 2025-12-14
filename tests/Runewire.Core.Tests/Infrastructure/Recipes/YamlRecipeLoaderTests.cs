@@ -264,6 +264,81 @@ public sealed class YamlRecipeLoaderTests
     }
 
     [Fact]
+    public void LoadFromString_supports_launch_process_target()
+    {
+        // Setup
+        string payloadPath = CreateTempPayloadFile();
+        string exePath = CreateTempPayloadFile(); // just reuse a temp file to satisfy existence checks downstream
+        string yaml = $"""
+            name: launch-recipe
+            target:
+              kind: launchProcess
+              path: {exePath}
+              arguments: "--foo bar"
+              workingDirectory: C:\lab\work
+              startSuspended: true
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: {payloadPath}
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        YamlRecipeLoader loader = CreateLoader();
+
+        RunewireRecipe recipe = loader.LoadFromString(yaml);
+
+        Assert.Equal(RecipeTargetKind.LaunchProcess, recipe.Target.Kind);
+        Assert.Equal(exePath, recipe.Target.LaunchPath);
+        Assert.Equal("--foo bar", recipe.Target.LaunchArguments);
+        Assert.Equal(@"C:\lab\work", recipe.Target.LaunchWorkingDirectory);
+        Assert.True(recipe.Target.LaunchStartSuspended);
+    }
+
+    [Fact]
+    public void LoadFromString_maps_steps()
+    {
+        string payloadPath = CreateTempPayloadFile();
+        string yaml = $"""
+            name: steps-recipe
+            target:
+              kind: processByName
+              processName: explorer.exe
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: {payloadPath}
+            steps:
+              - kind: inject
+                techniqueName: CreateRemoteThread
+                payloadPath: {payloadPath}
+              - kind: wait
+                condition:
+                  kind: module
+                  value: user32.dll
+                  timeoutMilliseconds: 1000
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        YamlRecipeLoader loader = CreateLoader();
+
+        RunewireRecipe recipe = loader.LoadFromString(yaml);
+
+        Assert.NotNull(recipe.Steps);
+        Assert.Equal(2, recipe.Steps!.Count);
+        Assert.Equal(RecipeStepKind.InjectTechnique, recipe.Steps[0].Kind);
+        Assert.Equal(RecipeStepKind.Wait, recipe.Steps[1].Kind);
+        Assert.NotNull(recipe.Steps[1].Condition);
+        Assert.Equal(WaitConditionKind.ModuleLoaded, recipe.Steps[1].Condition!.Kind);
+        Assert.Equal("user32.dll", recipe.Steps[1].Condition!.Value);
+        Assert.Equal(1000, recipe.Steps[1].Condition!.TimeoutMilliseconds);
+    }
+
+    [Fact]
     public void LoadFromString_parses_technique_parameters()
     {
         // Setup

@@ -10,5 +10,6 @@ public sealed record RunewireRecipe(
     InjectionTechnique Technique,
     string PayloadPath,
     bool RequireInteractiveConsent,
-    bool AllowKernelDrivers
+    bool AllowKernelDrivers,
+    IReadOnlyList<RecipeStep>? Steps = null
 );
