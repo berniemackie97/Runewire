@@ -31,6 +31,7 @@ public static class Program
             // Core recipe commands. This is the main workflow right now.
             RecipeValidateCommand.Create(),
             RecipeRunCommand.Create(),
+            TechniquesListCommand.Create(),
         };
 
         // Stuff I'll will probably add later:

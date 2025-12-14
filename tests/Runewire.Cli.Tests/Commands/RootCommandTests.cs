@@ -32,6 +32,7 @@ public sealed class RootCommandTests
         // Use the command constants so this test stays valid through renames.
         Assert.Contains(RecipeRunCommand.CommandName, commandNames);
         Assert.Contains(RecipeValidateCommand.CommandName, commandNames);
+        Assert.Contains(TechniquesListCommand.CommandName, commandNames);
     }
 
     [Fact]
@@ -48,5 +49,6 @@ public sealed class RootCommandTests
         Assert.Contains("Runewire process injection lab CLI", output);
         Assert.Contains(RecipeRunCommand.CommandName, output);
         Assert.Contains(RecipeValidateCommand.CommandName, output);
+        Assert.Contains(TechniquesListCommand.CommandName, output);
     }
 }
