@@ -33,6 +33,7 @@ public sealed class RootCommandTests
         Assert.Contains(RecipeRunCommand.CommandName, commandNames);
         Assert.Contains(RecipeValidateCommand.CommandName, commandNames);
         Assert.Contains(TechniquesListCommand.CommandName, commandNames);
+        Assert.Contains(RecipePreflightCommand.CommandName, commandNames);
     }
 
     [Fact]
@@ -50,5 +51,6 @@ public sealed class RootCommandTests
         Assert.Contains(RecipeRunCommand.CommandName, output);
         Assert.Contains(RecipeValidateCommand.CommandName, output);
         Assert.Contains(TechniquesListCommand.CommandName, output);
+        Assert.Contains(RecipePreflightCommand.CommandName, output);
     }
 }

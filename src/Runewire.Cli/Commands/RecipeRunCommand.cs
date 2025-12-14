@@ -25,6 +25,11 @@ public static class RecipeRunCommand
     private const int ExitCodeLoadError = 2;
     private const int ExitCodeInjectionFailure = 3;
 
+    private static readonly JsonSerializerOptions s_jsonOptions = new()
+    {
+        WriteIndented = true
+    };
+
     /// <summary>
     /// Creates the run command:
     ///   runewire run recipe.yaml
@@ -123,7 +128,7 @@ public static class RecipeRunCommand
                         recipeName = recipe.Name,
                         engine = outcome.Engine,
                         meta = BuildMeta(),
-                        preflight = BuildPreflight(outcome),
+                        preflight = outcome.Preflight,
                         result = new
                         {
                             success = result.Success,
@@ -149,7 +154,7 @@ public static class RecipeRunCommand
                     recipeName = recipe.Name,
                     engine = outcome.Engine,
                     meta = BuildMeta(),
-                    preflight = BuildPreflight(outcome),
+                    preflight = outcome.Preflight,
                     result = new
                     {
                         success = result.Success,
@@ -243,25 +248,9 @@ public static class RecipeRunCommand
 
     private static void WriteJson(object payload)
     {
-        string json = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+        string json = JsonSerializer.Serialize(payload, s_jsonOptions);
         Console.WriteLine(json);
     }
-
-    private static object BuildPreflight(RecipeRunOutcome outcome) => new
-    {
-        target = new
-        {
-            success = outcome.TargetPreflight.Success,
-            errors = outcome.TargetPreflight.Errors.Select(e => new { code = e.Code, message = e.Message }).ToArray()
-        },
-        payload = new
-        {
-            success = outcome.PayloadPreflight.Success,
-            errors = outcome.PayloadPreflight.Errors.Select(e => new { code = e.Code, message = e.Message }).ToArray(),
-            payloadArchitecture = outcome.PayloadPreflight.PayloadArchitecture,
-            processArchitecture = outcome.PayloadPreflight.ProcessArchitecture
-        }
-    };
 
     private static object BuildMeta()
     {

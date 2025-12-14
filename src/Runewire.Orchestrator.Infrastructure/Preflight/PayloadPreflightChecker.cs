@@ -7,6 +7,7 @@ namespace Runewire.Orchestrator.Infrastructure.Preflight;
 
 /// <summary>
 /// Checks payload accessibility and, on Windows, attempts to match payload architecture to the current process.
+/// On Unix, checks readability and execute bit.
 /// </summary>
 public sealed class PayloadPreflightChecker : IPayloadPreflightChecker
 {
@@ -24,10 +25,14 @@ public sealed class PayloadPreflightChecker : IPayloadPreflightChecker
 
         if (!OperatingSystem.IsWindows())
         {
-            // Architecture check is Windows-only for now.
-            return PayloadPreflightResult.Ok(null, processArch);
+            return CheckUnix(payloadPath, processArch);
         }
 
+        return CheckWindows(payloadPath, processArch);
+    }
+
+    private static PayloadPreflightResult CheckWindows(string payloadPath, string processArch)
+    {
         try
         {
             using FileStream stream = File.Open(payloadPath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -62,5 +67,34 @@ public sealed class PayloadPreflightChecker : IPayloadPreflightChecker
         {
             return PayloadPreflightResult.Failed("Unknown", processArch, new RecipeValidationError("PAYLOAD_READ_FAILED", $"Failed to inspect payload: {ex.Message}"));
         }
+    }
+
+    private static PayloadPreflightResult CheckUnix(string payloadPath, string processArch)
+    {
+        try
+        {
+            using FileStream stream = File.Open(payloadPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            stream.ReadByte(); // touch the stream to verify readability
+        }
+        catch (Exception ex)
+        {
+            return PayloadPreflightResult.Failed("Unknown", processArch, new RecipeValidationError("PAYLOAD_READ_FAILED", $"Failed to inspect payload: {ex.Message}"));
+        }
+
+        try
+        {
+            UnixFileMode mode = File.GetUnixFileMode(payloadPath);
+            bool hasExec = mode.HasFlag(UnixFileMode.UserExecute) || mode.HasFlag(UnixFileMode.GroupExecute) || mode.HasFlag(UnixFileMode.OtherExecute);
+            if (!hasExec)
+            {
+                return PayloadPreflightResult.Failed("Unknown", processArch, new RecipeValidationError("PAYLOAD_EXEC_PERMISSION_MISSING", $"Payload is not marked executable: {payloadPath}"));
+            }
+        }
+        catch (PlatformNotSupportedException)
+        {
+            // Ignore, fall through as best-effort.
+        }
+
+        return PayloadPreflightResult.Ok("Unknown", processArch);
     }
 }

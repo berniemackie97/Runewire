@@ -32,6 +32,7 @@ public static class Program
             RecipeValidateCommand.Create(),
             RecipeRunCommand.Create(),
             TechniquesListCommand.Create(),
+            RecipePreflightCommand.Create(),
         };
 
         // Stuff I'll will probably add later:

@@ -2,25 +2,20 @@ using System.CommandLine;
 using Runewire.Cli.Infrastructure;
 using Runewire.Core.Infrastructure.Recipes;
 using Runewire.Domain.Validation;
-using Runewire.Orchestrator.Infrastructure.Services;
 using Runewire.Orchestrator.Infrastructure.InjectionEngines;
 using Runewire.Orchestrator.Infrastructure.Preflight;
+using Runewire.Orchestrator.Infrastructure.Services;
 using System.Text.Json;
 
 namespace Runewire.Cli.Commands;
 
 /// <summary>
-/// Validates a recipe YAML file.
-/// This does not run anything. It just loads + checks the recipe and prints errors.
+/// Runs validation + preflight checks without executing an engine.
 /// </summary>
-public static class RecipeValidateCommand
+public static class RecipePreflightCommand
 {
-    public const string CommandName = "validate";
+    public const string CommandName = "preflight";
 
-    // Exit codes for validate:
-    // 0 = valid
-    // 1 = recipe loaded but has validation errors
-    // 2 = file missing, parse/load error, IO, or unexpected error
     private const int ExitCodeSuccess = 0;
     private const int ExitCodeValidationError = 1;
     private const int ExitCodeLoadOrOtherError = 2;
@@ -30,15 +25,11 @@ public static class RecipeValidateCommand
         WriteIndented = true
     };
 
-    /// <summary>
-    /// Creates the command:
-    /// runewire validate recipe.yaml
-    /// </summary>
     public static Command Create()
     {
         Argument<FileInfo> recipeArgument = new("recipe")
         {
-            Description = "Path to the recipe file (YAML or JSON) to validate.",
+            Description = "Path to the recipe file (YAML or JSON) to preflight.",
         };
 
         Option<bool> jsonOption = new("--json")
@@ -46,7 +37,7 @@ public static class RecipeValidateCommand
             Description = "Emit machine-readable JSON output instead of human-readable text.",
         };
 
-        Command command = new(name: CommandName, description: "Validate a Runewire recipe file (YAML or JSON).")
+        Command command = new(name: CommandName, description: "Validate and preflight a Runewire recipe without executing it.")
         {
             recipeArgument,
             jsonOption,
@@ -76,9 +67,6 @@ public static class RecipeValidateCommand
         return command;
     }
 
-    /// <summary>
-    /// Main validate logic. Returns an exit code (see constants above).
-    /// </summary>
     private static int Handle(FileInfo recipeFile, bool outputJson)
     {
         if (!recipeFile.Exists)
@@ -112,13 +100,15 @@ public static class RecipeValidateCommand
             }
             else
             {
-                CliConsole.WriteSuccess($"Recipe is valid: {outcome.Recipe.Name}");
+                CliConsole.WriteSuccess($"Recipe is valid and passed preflight: {outcome.Recipe.Name}");
+                CliConsole.WriteDetail($"Target preflight: {(outcome.Preflight.TargetSuccess ? "ok" : "failed")}");
+                CliConsole.WriteDetail($"Payload preflight: {(outcome.Preflight.PayloadSuccess ? "ok" : "failed")}");
             }
+
             return ExitCodeSuccess;
         }
         catch (RecipeLoadException ex)
         {
-            // Loaded enough to produce semantic validation errors.
             if (ex.ValidationErrors.Count > 0)
             {
                 if (outputJson)
@@ -142,7 +132,6 @@ public static class RecipeValidateCommand
                 return ExitCodeValidationError;
             }
 
-            // Parse/IO/structural failure.
             if (outputJson)
             {
                 WriteJson(new { status = "error", meta = BuildMeta(), message = ex.Message, inner = ex.InnerException?.Message });
@@ -162,24 +151,17 @@ public static class RecipeValidateCommand
         }
         catch (Exception ex)
         {
-            // Just fail clean.
             if (outputJson)
             {
                 WriteJson(new { status = "error", meta = BuildMeta(), message = ex.Message });
             }
             else
             {
-                CliConsole.WriteHeader("Unexpected error while validating recipe.", ConsoleColor.Red);
+                CliConsole.WriteHeader("Unexpected error while preflighting recipe.", ConsoleColor.Red);
                 CliConsole.WriteError(ex.Message);
             }
             return ExitCodeLoadOrOtherError;
         }
-    }
-
-    private static void ThrowValidation(IEnumerable<RecipeValidationError> errors)
-    {
-        List<RecipeValidationError> list = errors?.ToList() ?? [];
-        throw new RecipeLoadException("Recipe failed preflight.", list);
     }
 
     private static void WriteJson(object payload)

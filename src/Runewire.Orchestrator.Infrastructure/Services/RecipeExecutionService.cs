@@ -11,20 +11,13 @@ namespace Runewire.Orchestrator.Infrastructure.Services;
 /// Shared service to load, preflight, and execute recipes.
 /// CLI/Studio/Server should come through here to keep behavior consistent.
 /// </summary>
-public sealed class RecipeExecutionService
+public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider, ITargetPreflightChecker targetPreflightChecker,
+    IPayloadPreflightChecker payloadPreflightChecker, IInjectionEngineFactory engineFactory)
 {
-    private readonly IRecipeLoaderProvider _loaderProvider;
-    private readonly ITargetPreflightChecker _targetPreflightChecker;
-    private readonly IPayloadPreflightChecker _payloadPreflightChecker;
-    private readonly IInjectionEngineFactory _engineFactory;
-
-    public RecipeExecutionService(IRecipeLoaderProvider loaderProvider, ITargetPreflightChecker targetPreflightChecker, IPayloadPreflightChecker payloadPreflightChecker, IInjectionEngineFactory engineFactory)
-    {
-        _loaderProvider = loaderProvider ?? throw new ArgumentNullException(nameof(loaderProvider));
-        _targetPreflightChecker = targetPreflightChecker ?? throw new ArgumentNullException(nameof(targetPreflightChecker));
-        _payloadPreflightChecker = payloadPreflightChecker ?? throw new ArgumentNullException(nameof(payloadPreflightChecker));
-        _engineFactory = engineFactory ?? throw new ArgumentNullException(nameof(engineFactory));
-    }
+    private readonly IRecipeLoaderProvider _loaderProvider = loaderProvider ?? throw new ArgumentNullException(nameof(loaderProvider));
+    private readonly ITargetPreflightChecker _targetPreflightChecker = targetPreflightChecker ?? throw new ArgumentNullException(nameof(targetPreflightChecker));
+    private readonly IPayloadPreflightChecker _payloadPreflightChecker = payloadPreflightChecker ?? throw new ArgumentNullException(nameof(payloadPreflightChecker));
+    private readonly IInjectionEngineFactory _engineFactory = engineFactory ?? throw new ArgumentNullException(nameof(engineFactory));
 
     /// <summary>
     /// Load and validate a recipe from the provided path (including preflight).
@@ -47,7 +40,9 @@ public sealed class RecipeExecutionService
             ThrowValidation(payloadPreflight.Errors);
         }
 
-        return new RecipeValidationOutcome(recipe, targetPreflight, payloadPreflight);
+        PreflightSummary preflight = PreflightSummaryBuilder.Build(targetPreflight, payloadPreflight);
+
+        return new RecipeValidationOutcome(recipe, targetPreflight, payloadPreflight, preflight);
     }
 
     /// <summary>
@@ -63,7 +58,7 @@ public sealed class RecipeExecutionService
         RecipeExecutor executor = new(engine);
 
         InjectionResult result = await executor.ExecuteAsync(recipe, cancellationToken).ConfigureAwait(false);
-        return new RecipeRunOutcome(recipe, result, useNativeEngine ? "native" : "dry-run", validation.TargetPreflight, validation.PayloadPreflight);
+        return new RecipeRunOutcome(recipe, result, useNativeEngine ? "native" : "dry-run", validation.Preflight);
     }
 
     private static void ThrowValidation(IEnumerable<RecipeValidationError> errors)
@@ -73,5 +68,5 @@ public sealed class RecipeExecutionService
     }
 }
 
-public sealed record RecipeRunOutcome(RunewireRecipe Recipe, InjectionResult InjectionResult, string Engine, TargetPreflightResult TargetPreflight, PayloadPreflightResult PayloadPreflight);
-public sealed record RecipeValidationOutcome(RunewireRecipe Recipe, TargetPreflightResult TargetPreflight, PayloadPreflightResult PayloadPreflight);
+public sealed record RecipeRunOutcome(RunewireRecipe Recipe, InjectionResult InjectionResult, string Engine, PreflightSummary Preflight);
+public sealed record RecipeValidationOutcome(RunewireRecipe Recipe, TargetPreflightResult TargetPreflight, PayloadPreflightResult PayloadPreflight, PreflightSummary Preflight);
