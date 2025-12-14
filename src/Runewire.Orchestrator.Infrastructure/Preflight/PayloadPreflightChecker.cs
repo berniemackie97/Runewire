@@ -1,5 +1,6 @@
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Runewire.Domain.Recipes;
 using Runewire.Domain.Validation;
 
@@ -23,14 +24,20 @@ public sealed class PayloadPreflightChecker : IPayloadPreflightChecker
             return PayloadPreflightResult.Failed(null, processArch, new RecipeValidationError("PAYLOAD_PATH_NOT_FOUND", $"Payload file not found: {payloadPath}"));
         }
 
-        if (!OperatingSystem.IsWindows())
+        if (OperatingSystem.IsWindows())
+        {
+            return CheckWindows(payloadPath, processArch);
+        }
+
+        if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
         {
             return CheckUnix(payloadPath, processArch);
         }
 
-        return CheckWindows(payloadPath, processArch);
+        return PayloadPreflightResult.Ok("Unknown", processArch);
     }
 
+    [SupportedOSPlatform("windows")]
     private static PayloadPreflightResult CheckWindows(string payloadPath, string processArch)
     {
         try
@@ -69,6 +76,8 @@ public sealed class PayloadPreflightChecker : IPayloadPreflightChecker
         }
     }
 
+    [SupportedOSPlatform("linux")]
+    [SupportedOSPlatform("macos")]
     private static PayloadPreflightResult CheckUnix(string payloadPath, string processArch)
     {
         try
