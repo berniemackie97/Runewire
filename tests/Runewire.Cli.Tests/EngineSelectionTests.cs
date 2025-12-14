@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Runewire.Cli.Tests;
 
 /// <summary>
@@ -10,6 +12,7 @@ public sealed class EngineSelectionTests
     {
         // Setup
         string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string processName = Process.GetCurrentProcess().ProcessName;
         string recipePath = CLITestHarness.CreateTempRecipeFile(
             "runewire-engine-test",
             $"""
@@ -17,7 +20,7 @@ public sealed class EngineSelectionTests
             description: Demo run via native engine.
             target:
               kind: processByName
-              processName: explorer.exe
+              processName: {processName}
             technique:
               name: CreateRemoteThread
             payload:

@@ -13,6 +13,7 @@ public sealed class RecipeRunCommandTests
     {
         // Arrange
         string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string processName = Process.GetCurrentProcess().ProcessName;
         string recipePath = CLITestHarness.CreateTempRecipeFile(
             "runewire-run-test",
             $"""
@@ -20,7 +21,7 @@ public sealed class RecipeRunCommandTests
             description: Demo run execution.
             target:
               kind: processByName
-              processName: explorer.exe
+              processName: {processName}
             technique:
               name: CreateRemoteThread
             payload:
@@ -94,17 +95,20 @@ public sealed class RecipeRunCommandTests
     {
         // Arrange
         string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string processName = Process.GetCurrentProcess().ProcessName;
         string jsonTemplate = """
             {
               "name": "demo-run-json",
               "description": "Demo run via JSON.",
-              "target": { "kind": "processByName", "processName": "explorer.exe" },
+              "target": { "kind": "processByName", "processName": "__PROC__" },
               "technique": { "name": "CreateRemoteThread" },
               "payload": { "path": "__PAYLOAD__" },
               "safety": { "requireInteractiveConsent": true, "allowKernelDrivers": false }
             }
             """;
-        string json = jsonTemplate.Replace("__PAYLOAD__", payloadPath.Replace("\\", "\\\\", StringComparison.Ordinal), StringComparison.Ordinal);
+        string json = jsonTemplate
+            .Replace("__PAYLOAD__", payloadPath.Replace("\\", "\\\\", StringComparison.Ordinal), StringComparison.Ordinal)
+            .Replace("__PROC__", processName, StringComparison.Ordinal);
 
         string recipePath = CLITestHarness.CreateTempRecipeFile(
             "runewire-run-json-test",

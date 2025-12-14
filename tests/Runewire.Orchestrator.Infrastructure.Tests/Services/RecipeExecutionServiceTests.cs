@@ -24,7 +24,7 @@ public sealed class RecipeExecutionServiceTests
             AllowKernelDrivers: false));
 
         FakePreflightChecker preflight = new(TargetPreflightResult.Failed(new RecipeValidationError("TARGET_PID_NOT_FOUND", "missing")));
-        RecipeExecutionService service = new(loaderProvider, preflight, new FakeEngineFactory());
+        RecipeExecutionService service = new(loaderProvider, preflight, new FakePayloadPreflightChecker(), new FakeEngineFactory());
 
         // Act/Assert
         RecipeLoadException ex = Assert.Throws<RecipeLoadException>(() => service.Validate("demo.yaml"));
@@ -45,7 +45,7 @@ public sealed class RecipeExecutionServiceTests
             AllowKernelDrivers: false);
 
         FakeLoaderProvider loaderProvider = new(recipe);
-        RecipeExecutionService service = new(loaderProvider, new NullTargetPreflightChecker(), new FakeEngineFactory());
+        RecipeExecutionService service = new(loaderProvider, new FakeTargetPreflightChecker(TargetPreflightResult.Ok()), new FakePayloadPreflightChecker(), new FakeEngineFactory());
 
         // Act
         RecipeRunOutcome outcome = await service.RunAsync("demo.yaml", useNativeEngine: false);
@@ -67,6 +67,16 @@ public sealed class RecipeExecutionServiceTests
     }
 
     private sealed class FakePreflightChecker(TargetPreflightResult result) : ITargetPreflightChecker
+    {
+        public TargetPreflightResult Check(RunewireRecipe recipe) => result;
+    }
+
+    private sealed class FakePayloadPreflightChecker : IPayloadPreflightChecker
+    {
+        public PayloadPreflightResult Check(RunewireRecipe recipe) => PayloadPreflightResult.Ok("X64", "X64");
+    }
+
+    private sealed class FakeTargetPreflightChecker(TargetPreflightResult result) : ITargetPreflightChecker
     {
         public TargetPreflightResult Check(RunewireRecipe recipe) => result;
     }

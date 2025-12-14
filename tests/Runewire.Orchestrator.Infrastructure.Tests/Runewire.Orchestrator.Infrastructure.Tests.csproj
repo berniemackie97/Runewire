@@ -20,4 +20,11 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Runewire.Orchestrator.Infrastructure\Runewire.Orchestrator.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Runewire.Core.Infrastructure\Runewire.Core.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Runewire.Domain\Runewire.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Runewire.Orchestrator\Runewire.Orchestrator.csproj" />
+  </ItemGroup>
+
 </Project>

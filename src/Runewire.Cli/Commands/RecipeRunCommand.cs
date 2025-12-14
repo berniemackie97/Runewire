@@ -4,8 +4,8 @@ using Runewire.Core.Infrastructure.Recipes;
 using Runewire.Domain.Recipes;
 using Runewire.Domain.Validation;
 using Runewire.Orchestrator.Orchestration;
-using Runewire.Orchestrator.Infrastructure.Preflight;
 using Runewire.Orchestrator.Infrastructure.InjectionEngines;
+using Runewire.Orchestrator.Infrastructure.Preflight;
 using Runewire.Orchestrator.Infrastructure.Services;
 using System.Text.Json;
 
@@ -99,7 +99,7 @@ public static class RecipeRunCommand
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new InjectionEngineFactory());
+        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new PayloadPreflightChecker(), new InjectionEngineFactory());
 
         try
         {
@@ -122,6 +122,8 @@ public static class RecipeRunCommand
                         status = "succeeded",
                         recipeName = recipe.Name,
                         engine = outcome.Engine,
+                        meta = BuildMeta(),
+                        preflight = BuildPreflight(outcome),
                         result = new
                         {
                             success = result.Success,
@@ -146,6 +148,8 @@ public static class RecipeRunCommand
                     status = "failed",
                     recipeName = recipe.Name,
                     engine = outcome.Engine,
+                    meta = BuildMeta(),
+                    preflight = BuildPreflight(outcome),
                     result = new
                     {
                         success = result.Success,
@@ -182,6 +186,7 @@ public static class RecipeRunCommand
                     WriteJson(new
                     {
                         status = "invalid",
+                        meta = BuildMeta(),
                         errors = ex.ValidationErrors.Select(e => new { code = e.Code, message = e.Message }).ToArray()
                     });
                 }
@@ -199,7 +204,7 @@ public static class RecipeRunCommand
 
             if (outputJson)
             {
-                WriteJson(new { status = "error", message = ex.Message, inner = ex.InnerException?.Message });
+                WriteJson(new { status = "error", meta = BuildMeta(), message = ex.Message, inner = ex.InnerException?.Message });
             }
             else
             {
@@ -217,7 +222,7 @@ public static class RecipeRunCommand
         {
             if (outputJson)
             {
-                WriteJson(new { status = "error", message = ex.Message });
+                WriteJson(new { status = "error", meta = BuildMeta(), message = ex.Message });
             }
             else
             {
@@ -240,5 +245,27 @@ public static class RecipeRunCommand
     {
         string json = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
         Console.WriteLine(json);
+    }
+
+    private static object BuildPreflight(RecipeRunOutcome outcome) => new
+    {
+        target = new
+        {
+            success = outcome.TargetPreflight.Success,
+            errors = outcome.TargetPreflight.Errors.Select(e => new { code = e.Code, message = e.Message }).ToArray()
+        },
+        payload = new
+        {
+            success = outcome.PayloadPreflight.Success,
+            errors = outcome.PayloadPreflight.Errors.Select(e => new { code = e.Code, message = e.Message }).ToArray(),
+            payloadArchitecture = outcome.PayloadPreflight.PayloadArchitecture,
+            processArchitecture = outcome.PayloadPreflight.ProcessArchitecture
+        }
+    };
+
+    private static object BuildMeta()
+    {
+        Version? version = typeof(Program).Assembly.GetName().Version;
+        return new { version = version?.ToString() ?? "unknown" };
     }
 }

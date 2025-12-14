@@ -11,28 +11,43 @@ namespace Runewire.Orchestrator.Infrastructure.Services;
 /// Shared service to load, preflight, and execute recipes.
 /// CLI/Studio/Server should come through here to keep behavior consistent.
 /// </summary>
-public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider, ITargetPreflightChecker preflightChecker, IInjectionEngineFactory engineFactory)
+public sealed class RecipeExecutionService
 {
-    private readonly IRecipeLoaderProvider _loaderProvider = loaderProvider ?? throw new ArgumentNullException(nameof(loaderProvider));
-    private readonly ITargetPreflightChecker _preflightChecker = preflightChecker ?? throw new ArgumentNullException(nameof(preflightChecker));
-    private readonly IInjectionEngineFactory _engineFactory = engineFactory ?? throw new ArgumentNullException(nameof(engineFactory));
+    private readonly IRecipeLoaderProvider _loaderProvider;
+    private readonly ITargetPreflightChecker _targetPreflightChecker;
+    private readonly IPayloadPreflightChecker _payloadPreflightChecker;
+    private readonly IInjectionEngineFactory _engineFactory;
+
+    public RecipeExecutionService(IRecipeLoaderProvider loaderProvider, ITargetPreflightChecker targetPreflightChecker, IPayloadPreflightChecker payloadPreflightChecker, IInjectionEngineFactory engineFactory)
+    {
+        _loaderProvider = loaderProvider ?? throw new ArgumentNullException(nameof(loaderProvider));
+        _targetPreflightChecker = targetPreflightChecker ?? throw new ArgumentNullException(nameof(targetPreflightChecker));
+        _payloadPreflightChecker = payloadPreflightChecker ?? throw new ArgumentNullException(nameof(payloadPreflightChecker));
+        _engineFactory = engineFactory ?? throw new ArgumentNullException(nameof(engineFactory));
+    }
 
     /// <summary>
     /// Load and validate a recipe from the provided path (including preflight).
     /// Throws RecipeLoadException on validation/preflight failures.
     /// </summary>
-    public RunewireRecipe Validate(string path)
+    public RecipeValidationOutcome Validate(string path)
     {
         IRecipeLoader loader = _loaderProvider.Create(path);
         RunewireRecipe recipe = loader.LoadFromFile(path);
 
-        TargetPreflightResult preflight = _preflightChecker.Check(recipe);
-        if (!preflight.Success)
+        TargetPreflightResult targetPreflight = _targetPreflightChecker.Check(recipe);
+        if (!targetPreflight.Success)
         {
-            ThrowValidation(preflight.Errors);
+            ThrowValidation(targetPreflight.Errors);
         }
 
-        return recipe;
+        PayloadPreflightResult payloadPreflight = _payloadPreflightChecker.Check(recipe);
+        if (!payloadPreflight.Success)
+        {
+            ThrowValidation(payloadPreflight.Errors);
+        }
+
+        return new RecipeValidationOutcome(recipe, targetPreflight, payloadPreflight);
     }
 
     /// <summary>
@@ -41,13 +56,14 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
     /// </summary>
     public async Task<RecipeRunOutcome> RunAsync(string path, bool useNativeEngine, CancellationToken cancellationToken = default)
     {
-        RunewireRecipe recipe = Validate(path);
+        RecipeValidationOutcome validation = Validate(path);
+        RunewireRecipe recipe = validation.Recipe;
 
         IInjectionEngine engine = _engineFactory.Create(useNativeEngine);
         RecipeExecutor executor = new(engine);
 
         InjectionResult result = await executor.ExecuteAsync(recipe, cancellationToken).ConfigureAwait(false);
-        return new RecipeRunOutcome(recipe, result, useNativeEngine ? "native" : "dry-run");
+        return new RecipeRunOutcome(recipe, result, useNativeEngine ? "native" : "dry-run", validation.TargetPreflight, validation.PayloadPreflight);
     }
 
     private static void ThrowValidation(IEnumerable<RecipeValidationError> errors)
@@ -57,4 +73,5 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
     }
 }
 
-public sealed record RecipeRunOutcome(RunewireRecipe Recipe, InjectionResult InjectionResult, string Engine);
+public sealed record RecipeRunOutcome(RunewireRecipe Recipe, InjectionResult InjectionResult, string Engine, TargetPreflightResult TargetPreflight, PayloadPreflightResult PayloadPreflight);
+public sealed record RecipeValidationOutcome(RunewireRecipe Recipe, TargetPreflightResult TargetPreflight, PayloadPreflightResult PayloadPreflight);

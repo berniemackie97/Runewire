@@ -1,11 +1,10 @@
 using System.CommandLine;
 using Runewire.Cli.Infrastructure;
 using Runewire.Core.Infrastructure.Recipes;
-using Runewire.Domain.Recipes;
 using Runewire.Domain.Validation;
+using Runewire.Orchestrator.Infrastructure.Services;
 using Runewire.Orchestrator.Infrastructure.InjectionEngines;
 using Runewire.Orchestrator.Infrastructure.Preflight;
-using Runewire.Orchestrator.Infrastructure.Services;
 using System.Text.Json;
 
 namespace Runewire.Cli.Commands;
@@ -90,19 +89,25 @@ public static class RecipeValidateCommand
             return ExitCodeLoadOrOtherError;
         }
 
-        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new InjectionEngineFactory());
+        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new PayloadPreflightChecker(), new InjectionEngineFactory());
 
         try
         {
-            RunewireRecipe recipe = service.Validate(recipeFile.FullName);
+            RecipeValidationOutcome outcome = service.Validate(recipeFile.FullName);
 
             if (outputJson)
             {
-                WriteJson(new { status = "valid", recipeName = recipe.Name });
+                WriteJson(new
+                {
+                    status = "valid",
+                    recipeName = outcome.Recipe.Name,
+                    meta = BuildMeta(),
+                    preflight = BuildPreflight(outcome)
+                });
             }
             else
             {
-                CliConsole.WriteSuccess($"Recipe is valid: {recipe.Name}");
+                CliConsole.WriteSuccess($"Recipe is valid: {outcome.Recipe.Name}");
             }
             return ExitCodeSuccess;
         }
@@ -116,6 +121,7 @@ public static class RecipeValidateCommand
                     WriteJson(new
                     {
                         status = "invalid",
+                        meta = BuildMeta(),
                         errors = ex.ValidationErrors.Select(e => new { code = e.Code, message = e.Message }).ToArray()
                     });
                 }
@@ -134,7 +140,7 @@ public static class RecipeValidateCommand
             // Parse/IO/structural failure.
             if (outputJson)
             {
-                WriteJson(new { status = "error", message = ex.Message, inner = ex.InnerException?.Message });
+                WriteJson(new { status = "error", meta = BuildMeta(), message = ex.Message, inner = ex.InnerException?.Message });
             }
             else
             {
@@ -154,7 +160,7 @@ public static class RecipeValidateCommand
             // Just fail clean.
             if (outputJson)
             {
-                WriteJson(new { status = "error", message = ex.Message });
+                WriteJson(new { status = "error", meta = BuildMeta(), message = ex.Message });
             }
             else
             {
@@ -175,5 +181,27 @@ public static class RecipeValidateCommand
     {
         string json = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
         Console.WriteLine(json);
+    }
+
+    private static object BuildPreflight(RecipeValidationOutcome outcome) => new
+    {
+        target = new
+        {
+            success = outcome.TargetPreflight.Success,
+            errors = outcome.TargetPreflight.Errors.Select(e => new { code = e.Code, message = e.Message }).ToArray()
+        },
+        payload = new
+        {
+            success = outcome.PayloadPreflight.Success,
+            errors = outcome.PayloadPreflight.Errors.Select(e => new { code = e.Code, message = e.Message }).ToArray(),
+            payloadArchitecture = outcome.PayloadPreflight.PayloadArchitecture,
+            processArchitecture = outcome.PayloadPreflight.ProcessArchitecture
+        }
+    };
+
+    private static object BuildMeta()
+    {
+        Version? version = typeof(Program).Assembly.GetName().Version;
+        return new { version = version?.ToString() ?? "unknown" };
     }
 }
