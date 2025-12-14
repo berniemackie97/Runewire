@@ -91,6 +91,21 @@ public sealed class RecipeValidateCommandTests
     }
 
     [Fact]
+    public async Task Validate_missing_file_with_json_returns_structured_error()
+    {
+        // Arrange
+        string recipePath = Path.Combine(Path.GetTempPath(), $"runewire-validate-missing-{Guid.NewGuid():N}.yaml");
+
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeValidateCommand.CommandName, "--json", recipePath);
+
+        // Assert
+        Assert.Equal(2, exitCode);
+        Assert.Contains("\"status\": \"error\"", output);
+        Assert.Contains("\"meta\"", output);
+    }
+
+    [Fact]
     public async Task No_arguments_shows_help_and_returns_non_zero()
     {
         // Act

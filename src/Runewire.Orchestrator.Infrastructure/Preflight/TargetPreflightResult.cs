@@ -7,7 +7,7 @@ namespace Runewire.Orchestrator.Infrastructure.Preflight;
 /// </summary>
 public sealed record TargetPreflightResult(bool Success, IReadOnlyList<RecipeValidationError> Errors)
 {
-    public static TargetPreflightResult Ok() => new(true, Array.Empty<RecipeValidationError>());
+    public static TargetPreflightResult Ok() => new(true, []);
 
     public static TargetPreflightResult Failed(params RecipeValidationError[] errors) => new(false, errors ?? []);
 }

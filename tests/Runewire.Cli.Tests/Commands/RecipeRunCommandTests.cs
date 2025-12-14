@@ -91,6 +91,21 @@ public sealed class RecipeRunCommandTests
     }
 
     [Fact]
+    public async Task Run_missing_file_with_json_returns_structured_error()
+    {
+        // Arrange
+        string recipePath = Path.Combine(Path.GetTempPath(), $"runewire-run-missing-{Guid.NewGuid():N}.yaml");
+
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeRunCommand.CommandName, "--json", recipePath);
+
+        // Assert
+        Assert.Equal(2, exitCode);
+        Assert.Contains("\"status\": \"error\"", output);
+        Assert.Contains("\"engine\": \"dry-run\"", output);
+    }
+
+    [Fact]
     public async Task Run_json_recipe_returns_exit_code_0_and_reports_success()
     {
         // Arrange
@@ -180,6 +195,7 @@ public sealed class RecipeRunCommandTests
         Assert.Equal(0, exitCode);
         Assert.Contains("\"status\": \"succeeded\"", output);
         Assert.Contains("\"recipeName\": \"json-output\"", output);
+        Assert.DoesNotContain("Dry-run injection plan", output, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

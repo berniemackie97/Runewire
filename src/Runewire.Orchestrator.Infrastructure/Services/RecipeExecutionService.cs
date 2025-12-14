@@ -49,12 +49,12 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
     /// Execute a recipe from path using the chosen engine.
     /// Throws RecipeLoadException on validation/preflight failures.
     /// </summary>
-    public async Task<RecipeRunOutcome> RunAsync(string path, bool useNativeEngine, CancellationToken cancellationToken = default)
+    public async Task<RecipeRunOutcome> RunAsync(string path, bool useNativeEngine, InjectionEngineOptions? engineOptions = null, CancellationToken cancellationToken = default)
     {
         RecipeValidationOutcome validation = Validate(path);
         RunewireRecipe recipe = validation.Recipe;
 
-        IInjectionEngine engine = _engineFactory.Create(useNativeEngine);
+        IInjectionEngine engine = _engineFactory.Create(useNativeEngine, engineOptions);
         RecipeExecutor executor = new(engine);
 
         InjectionResult result = await executor.ExecuteAsync(recipe, cancellationToken).ConfigureAwait(false);

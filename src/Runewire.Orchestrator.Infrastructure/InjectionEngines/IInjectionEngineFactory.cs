@@ -7,5 +7,5 @@ namespace Runewire.Orchestrator.Infrastructure.InjectionEngines;
 /// </summary>
 public interface IInjectionEngineFactory
 {
-    IInjectionEngine Create(bool useNativeEngine);
+    IInjectionEngine Create(bool useNativeEngine, InjectionEngineOptions? options = null);
 }

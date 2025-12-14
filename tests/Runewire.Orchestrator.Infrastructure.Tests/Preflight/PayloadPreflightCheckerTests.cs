@@ -127,4 +127,88 @@ public sealed class PayloadPreflightCheckerTests
             try { File.Delete(tempPayload); } catch { /* ignore */ }
         }
     }
+
+    [Fact]
+    public void Check_detects_elf_arch_and_mismatch_on_windows()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return; // processArch mapping in tests assumes Windows x64
+        }
+
+        string tempPayload = Path.Combine(Path.GetTempPath(), $"runewire-payload-{Guid.NewGuid():N}.elf");
+
+        // Minimal ELF header with EM_AARCH64 (183) and 64-bit class.
+        byte[] elfHeader =
+        [
+            0x7F, (byte)'E', (byte)'L', (byte)'F', // magic
+            0x02, // EI_CLASS = 64-bit
+            0x01, // EI_DATA = little endian
+            0x01, // EI_VERSION
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // padding to e_machine
+            0xB7, 0x00 // e_machine = 183 (AARCH64) little endian
+        ];
+        File.WriteAllBytes(tempPayload, elfHeader);
+
+        RunewireRecipe recipe = new(
+            "demo",
+            null,
+            RecipeTarget.Self(),
+            new InjectionTechnique("CreateRemoteThread"),
+            tempPayload,
+            RequireInteractiveConsent: false,
+            AllowKernelDrivers: false);
+
+        PayloadPreflightChecker checker = new();
+
+        try
+        {
+            PayloadPreflightResult result = checker.Check(recipe);
+
+            Assert.False(result.Success);
+            Assert.Contains(result.Errors, e => e.Code == "PAYLOAD_ARCH_MISMATCH");
+        }
+        finally
+        {
+            try { File.Delete(tempPayload); } catch { /* ignore */ }
+        }
+    }
+
+    [Fact]
+    public void Check_detects_macho_arch_hint()
+    {
+        string tempPayload = Path.Combine(Path.GetTempPath(), $"runewire-payload-{Guid.NewGuid():N}.macho");
+
+        // Minimal Mach-O header: magic = 0xfeedfacf (64-bit little), cputype = CPU_TYPE_X86_64 (0x01000007)
+        byte[] machHeader =
+        [
+            0xcf, 0xfa, 0xed, 0xfe, // magic (little endian feedfacf)
+            0x07, 0x00, 0x00, 0x01, // cputype with ABI flag
+            0x00, 0x00, 0x00, 0x00  // cpusubtype (ignored)
+        ];
+        File.WriteAllBytes(tempPayload, machHeader);
+
+        RunewireRecipe recipe = new(
+            "demo",
+            null,
+            RecipeTarget.Self(),
+            new InjectionTechnique("CreateRemoteThread"),
+            tempPayload,
+            RequireInteractiveConsent: false,
+            AllowKernelDrivers: false);
+
+        PayloadPreflightChecker checker = new();
+
+        try
+        {
+            PayloadPreflightResult result = checker.Check(recipe);
+
+            Assert.True(result.Success);
+            Assert.Equal("X64", result.PayloadArchitecture);
+        }
+        finally
+        {
+            try { File.Delete(tempPayload); } catch { /* ignore */ }
+        }
+    }
 }

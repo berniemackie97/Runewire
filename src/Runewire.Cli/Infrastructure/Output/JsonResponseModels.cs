@@ -1,0 +1,81 @@
+using Runewire.Domain.Validation;
+using Runewire.Orchestrator.Infrastructure.Preflight;
+using Runewire.Orchestrator.Infrastructure.Services;
+using Runewire.Orchestrator.Orchestration;
+
+namespace Runewire.Cli.Infrastructure.Output;
+
+public sealed record MetaDto(string? Version);
+public sealed record ErrorDto(string Code, string Message);
+public sealed record PreflightSummaryDto(
+    bool TargetSuccess,
+    IReadOnlyList<ErrorDto> TargetErrors,
+    bool PayloadSuccess,
+    IReadOnlyList<ErrorDto> PayloadErrors,
+    string? PayloadArchitecture,
+    string? ProcessArchitecture
+);
+public sealed record InjectionResultDto(bool Success, string? ErrorCode, string? ErrorMessage, DateTimeOffset StartedAtUtc, DateTimeOffset CompletedAtUtc);
+
+public sealed record ValidationResponseDto(
+    string Status,
+    string? RecipeName,
+    MetaDto Meta,
+    PreflightSummaryDto? Preflight,
+    IReadOnlyList<ErrorDto>? Errors,
+    string? Message,
+    string? Inner
+);
+
+public sealed record RunResponseDto(
+    string Status,
+    string RecipeName,
+    string Engine,
+    MetaDto Meta,
+    PreflightSummaryDto? Preflight,
+    InjectionResultDto? Result,
+    IReadOnlyList<ErrorDto>? Errors,
+    string? Message,
+    string? Inner
+);
+
+public static class JsonResponseFactory
+{
+    public static ValidationResponseDto ValidationSuccess(RecipeValidationOutcome outcome) =>
+        new("valid", outcome.Recipe.Name, BuildMeta(), MapPreflight(outcome.Preflight), null, null, null);
+
+    public static ValidationResponseDto ValidationInvalid(IEnumerable<RecipeValidationError> errors) => new("invalid", null, BuildMeta(), null, MapErrors(errors), null, null);
+
+    public static ValidationResponseDto ValidationError(string message, Exception? ex) => new("error", null, BuildMeta(), null, null, message, ex?.Message);
+
+    public static RunResponseDto RunSuccess(RecipeRunOutcome outcome) =>
+        new("succeeded", outcome.Recipe.Name, outcome.Engine, BuildMeta(), MapPreflight(outcome.Preflight), MapInjectionResult(outcome.InjectionResult), null, null, null);
+
+    public static RunResponseDto RunFailure(RecipeRunOutcome outcome) =>
+        new("failed", outcome.Recipe.Name, outcome.Engine, BuildMeta(), MapPreflight(outcome.Preflight), MapInjectionResult(outcome.InjectionResult), null, null, null);
+
+    public static RunResponseDto RunError(string recipeName, string engine, string message, Exception? ex = null) =>
+        new("error", recipeName, engine, BuildMeta(), null, null, null, message, ex?.Message);
+
+    private static MetaDto BuildMeta()
+    {
+        Version? version = typeof(Program).Assembly.GetName().Version;
+        return new MetaDto(version?.ToString() ?? "unknown");
+    }
+
+    private static PreflightSummaryDto MapPreflight(PreflightSummary summary)
+    {
+        return new PreflightSummaryDto(
+            summary.TargetSuccess,
+            MapErrors(summary.TargetErrors),
+            summary.PayloadSuccess,
+            MapErrors(summary.PayloadErrors),
+            summary.PayloadArchitecture,
+            summary.ProcessArchitecture);
+    }
+
+    private static InjectionResultDto MapInjectionResult(InjectionResult result) =>
+        new(result.Success, result.ErrorCode, result.ErrorMessage, result.StartedAtUtc, result.CompletedAtUtc);
+
+    private static ErrorDto[] MapErrors(IEnumerable<RecipeValidationError> errors) => [.. errors.Select(e => new ErrorDto(e.Code, e.Message))];
+}

@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Runewire.Orchestrator.Orchestration;
 
 namespace Runewire.Orchestrator.Infrastructure.InjectionEngines;
@@ -7,5 +9,14 @@ namespace Runewire.Orchestrator.Infrastructure.InjectionEngines;
 /// </summary>
 public sealed class InjectionEngineFactory : IInjectionEngineFactory
 {
-    public IInjectionEngine Create(bool useNativeEngine) => useNativeEngine ? new NativeInjectionEngine() : new DryRunInjectionEngine();
+    public IInjectionEngine Create(bool useNativeEngine, InjectionEngineOptions? options = null)
+    {
+        if (useNativeEngine)
+        {
+            return new NativeInjectionEngine();
+        }
+
+        TextWriter output = options?.DryRunOutput ?? Console.Out;
+        return new DryRunInjectionEngine(output);
+    }
 }

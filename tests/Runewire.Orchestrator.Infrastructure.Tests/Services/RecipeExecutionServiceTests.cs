@@ -83,7 +83,7 @@ public sealed class RecipeExecutionServiceTests
 
     private sealed class FakeEngineFactory : IInjectionEngineFactory
     {
-        public IInjectionEngine Create(bool useNativeEngine) => new FakeEngine();
+        public IInjectionEngine Create(bool useNativeEngine, InjectionEngineOptions? options = null) => new FakeEngine();
 
         private sealed class FakeEngine : IInjectionEngine
         {

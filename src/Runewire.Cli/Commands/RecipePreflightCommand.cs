@@ -1,5 +1,6 @@
 using System.CommandLine;
 using Runewire.Cli.Infrastructure;
+using Runewire.Cli.Infrastructure.Output;
 using Runewire.Core.Infrastructure.Recipes;
 using Runewire.Domain.Validation;
 using Runewire.Orchestrator.Infrastructure.InjectionEngines;
@@ -22,7 +23,8 @@ public static class RecipePreflightCommand
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
     {
-        WriteIndented = true
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
     public static Command Create()
@@ -52,7 +54,7 @@ public static class RecipePreflightCommand
             {
                 if (outputJson)
                 {
-                    WriteJson(new { status = "error", message = "No recipe file specified." });
+                    WriteJson(JsonResponseFactory.ValidationError("No recipe file specified.", null));
                 }
                 else
                 {
@@ -73,7 +75,7 @@ public static class RecipePreflightCommand
         {
             if (outputJson)
             {
-                WriteJson(new { status = "error", message = $"Recipe file not found: {recipeFile.FullName}" });
+                WriteJson(JsonResponseFactory.ValidationError($"Recipe file not found: {recipeFile.FullName}", null));
             }
             else
             {
@@ -90,13 +92,7 @@ public static class RecipePreflightCommand
 
             if (outputJson)
             {
-                WriteJson(new
-                {
-                    status = "valid",
-                    recipeName = outcome.Recipe.Name,
-                    meta = BuildMeta(),
-                    preflight = outcome.Preflight
-                });
+                WriteJson(JsonResponseFactory.ValidationSuccess(outcome));
             }
             else
             {
@@ -113,12 +109,7 @@ public static class RecipePreflightCommand
             {
                 if (outputJson)
                 {
-                    WriteJson(new
-                    {
-                        status = "invalid",
-                        meta = BuildMeta(),
-                        errors = ex.ValidationErrors.Select(e => new { code = e.Code, message = e.Message }).ToArray()
-                    });
+                    WriteJson(JsonResponseFactory.ValidationInvalid(ex.ValidationErrors));
                 }
                 else
                 {
@@ -134,7 +125,7 @@ public static class RecipePreflightCommand
 
             if (outputJson)
             {
-                WriteJson(new { status = "error", meta = BuildMeta(), message = ex.Message, inner = ex.InnerException?.Message });
+                WriteJson(JsonResponseFactory.ValidationError(ex.Message, ex.InnerException));
             }
             else
             {
@@ -153,7 +144,7 @@ public static class RecipePreflightCommand
         {
             if (outputJson)
             {
-                WriteJson(new { status = "error", meta = BuildMeta(), message = ex.Message });
+                WriteJson(JsonResponseFactory.ValidationError(ex.Message, null));
             }
             else
             {
@@ -168,11 +159,5 @@ public static class RecipePreflightCommand
     {
         string json = JsonSerializer.Serialize(payload, s_jsonOptions);
         Console.WriteLine(json);
-    }
-
-    private static object BuildMeta()
-    {
-        Version? version = typeof(Program).Assembly.GetName().Version;
-        return new { version = version?.ToString() ?? "unknown" };
     }
 }
