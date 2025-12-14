@@ -1,33 +1,32 @@
 using System.CommandLine;
 using Runewire.Cli.Infrastructure;
-using Runewire.Core.Domain.Recipes;
-using Runewire.Core.Domain.Techniques;
-using Runewire.Core.Domain.Validation;
 using Runewire.Core.Infrastructure.Recipes;
+using Runewire.Core.Infrastructure.Validation;
+using Runewire.Domain.Recipes;
+using Runewire.Domain.Validation;
 using Runewire.Orchestrator.Orchestration;
+using Runewire.Orchestrator.Infrastructure.InjectionEngines;
 
 namespace Runewire.Cli.Commands;
 
 /// <summary>
-/// CLI command for executing a recipe using the injection engine.
+/// Runs a recipe using the injection engine.
+/// Dry run by default unless --native is set.
 /// </summary>
 public static class RecipeRunCommand
 {
     public const string CommandName = "run";
 
-    // Exit codes for the 'run' command.
+    // Exit codes for run.
     private const int ExitCodeSuccess = 0;
     private const int ExitCodeValidationError = 1;
     private const int ExitCodeLoadError = 2;
     private const int ExitCodeInjectionFailure = 3;
 
-    // Technique registry is immutable and safe to reuse across invocations.
-    private static readonly BuiltInInjectionTechniqueRegistry TechniqueRegistry = new();
-
     /// <summary>
-    /// Creates the 'run' command:
-    ///   runewire run &lt;recipe.yaml&gt;
-    ///   runewire run --native &lt;recipe.yaml&gt;
+    /// Creates the run command:
+    ///   runewire run recipe.yaml
+    ///   runewire run --native recipe.yaml
     /// </summary>
     public static Command Create()
     {
@@ -36,14 +35,7 @@ public static class RecipeRunCommand
             Description = "Path to the recipe YAML file to execute.",
         };
 
-        // IMPORTANT:
-        // Your System.CommandLine version's Option<T> ctors are touchy.
-        // We avoid all overload ambiguity by:
-        //   - Using a single string name
-        //   - Setting Description via property
-        //
-        // This guarantees "--native" is parsed as the option name and
-        // we don't accidentally treat descriptions as aliases.
+        // This prevents the parser from treating the description as an alias.
         Option<bool> nativeOption = new("--native")
         {
             Description = "Use the native Runewire.Injector engine instead of the dry-run engine.",
@@ -55,41 +47,44 @@ public static class RecipeRunCommand
             nativeOption,
         };
 
-        command.SetAction(parseResult =>
+        command.SetAction((parseResult, cancellationToken) =>
         {
             FileInfo? recipeFile = parseResult.GetValue(recipeArgument);
             bool useNativeEngine = parseResult.GetValue(nativeOption);
 
             if (recipeFile is null)
             {
-                WriteError("No recipe file specified.");
-                return ExitCodeLoadError;
+                CliConsole.WriteError("No recipe file specified.");
+                return Task.FromResult(ExitCodeLoadError);
             }
 
-            return Handle(recipeFile, useNativeEngine);
+            return HandleAsync(recipeFile, useNativeEngine, cancellationToken);
         });
 
         return command;
     }
 
     /// <summary>
-    /// Core handler logic for running a recipe.
+    /// Runs the recipe and returns an exit code.
     ///
     /// Exit codes:
     /// 0 = injection succeeded
     /// 1 = validation errors (semantic)
-    /// 2 = load/structural error (I/O, YAML parse)
+    /// 2 = load/structural error (IO, YAML parse)
     /// 3 = injection failed (engine reported failure or unexpected error)
     /// </summary>
-    private static int Handle(FileInfo recipeFile, bool useNativeEngine)
+    private static async Task<int> HandleAsync(FileInfo recipeFile, bool useNativeEngine, CancellationToken cancellationToken)
     {
         if (!recipeFile.Exists)
         {
-            WriteError($"Recipe file not found: {recipeFile.FullName}");
+            CliConsole.WriteError($"Recipe file not found: {recipeFile.FullName}");
             return ExitCodeLoadError;
         }
 
-        BasicRecipeValidator validator = CreateValidator();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Shared validator factory so CLI / Studio / Server stay in sync.
+        BasicRecipeValidator validator = RecipeValidatorFactory.CreateDefaultValidator();
         YamlRecipeLoader loader = new(validator);
 
         IInjectionEngine engine = CreateInjectionEngine(useNativeEngine);
@@ -101,30 +96,28 @@ public static class RecipeRunCommand
 
             if (useNativeEngine)
             {
-                // This string is asserted in EngineSelectionTests.
-                WriteDetail($"Using native injection engine for recipe '{recipe.Name}'.");
+                // EngineSelectionTests asserts this line. Keep it stable.
+                CliConsole.WriteDetail($"Using native injection engine for recipe '{recipe.Name}'.");
             }
 
-            // The orchestrator is async-first. CLI handlers are currently synchronous,
-            // so we bridge by blocking here. Once we move to async command handlers,
-            // this can be awaited instead.
-            InjectionResult result = executor.ExecuteAsync(recipe).GetAwaiter().GetResult();
+            InjectionResult result = await executor.ExecuteAsync(recipe, cancellationToken).ConfigureAwait(false);
 
             if (result.Success)
             {
-                WriteSuccess($"Injection succeeded for recipe '{recipe.Name}'.");
+                CliConsole.WriteSuccess($"Injection succeeded for recipe '{recipe.Name}'.");
                 return ExitCodeSuccess;
             }
 
-            WriteHeader("Injection failed.", ConsoleColor.Red);
+            CliConsole.WriteHeader("Injection failed.", ConsoleColor.Red);
+
             if (!string.IsNullOrWhiteSpace(result.ErrorCode))
             {
-                WriteError($"Code: {result.ErrorCode}");
+                CliConsole.WriteError($"Code: {result.ErrorCode}");
             }
 
             if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
             {
-                WriteError(result.ErrorMessage!);
+                CliConsole.WriteError(result.ErrorMessage!);
             }
 
             return ExitCodeInjectionFailure;
@@ -133,61 +126,32 @@ public static class RecipeRunCommand
         {
             if (ex.ValidationErrors.Count > 0)
             {
-                WriteHeader("Recipe is invalid.", ConsoleColor.Yellow);
+                CliConsole.WriteHeader("Recipe is invalid.", ConsoleColor.Yellow);
                 foreach (RecipeValidationError error in ex.ValidationErrors)
                 {
-                    WriteBullet($"[{error.Code}] {error.Message}", ConsoleColor.Yellow);
+                    CliConsole.WriteBullet($"[{error.Code}] {error.Message}", ConsoleColor.Yellow);
                 }
 
                 return ExitCodeValidationError;
             }
 
-            WriteHeader("Failed to load recipe.", ConsoleColor.Red);
-            WriteError(ex.Message);
+            CliConsole.WriteHeader("Failed to load recipe.", ConsoleColor.Red);
+            CliConsole.WriteError(ex.Message);
 
             if (ex.InnerException is not null)
             {
-                WriteDetail($"Inner: {ex.InnerException.Message}");
+                CliConsole.WriteDetail($"Inner: {ex.InnerException.Message}");
             }
 
             return ExitCodeLoadError;
         }
         catch (Exception ex)
         {
-            WriteHeader("Unexpected error while executing recipe.", ConsoleColor.Red);
-            WriteError(ex.Message);
+            CliConsole.WriteHeader("Unexpected error while executing recipe.", ConsoleColor.Red);
+            CliConsole.WriteError(ex.Message);
             return ExitCodeInjectionFailure;
         }
     }
 
     private static IInjectionEngine CreateInjectionEngine(bool useNativeEngine) => useNativeEngine ? new NativeInjectionEngine() : new DryRunInjectionEngine();
-
-    private static BasicRecipeValidator CreateValidator()
-    {
-        // The registry is immutable, so we can safely reuse it across runs, and just
-        // provide a lookup function to the validator.
-        return new BasicRecipeValidator(techniqueName => TechniqueRegistry.GetByName(techniqueName) is not null);
-    }
-
-    #region Console helpers
-
-    private static void WriteSuccess(string message) => WriteLineWithColor(message, ConsoleColor.Green);
-
-    private static void WriteError(string message) => WriteLineWithColor(message, ConsoleColor.Red);
-
-    private static void WriteDetail(string message) => WriteLineWithColor(message, ConsoleColor.DarkGray);
-
-    private static void WriteHeader(string message, ConsoleColor color) => WriteLineWithColor(message, color);
-
-    private static void WriteBullet(string message, ConsoleColor color) => WriteLineWithColor($" - {message}", color);
-
-    private static void WriteLineWithColor(string message, ConsoleColor color)
-    {
-        ConsoleColor original = Console.ForegroundColor;
-        Console.ForegroundColor = color;
-        Console.WriteLine(message);
-        Console.ForegroundColor = original;
-    }
-
-    #endregion
 }

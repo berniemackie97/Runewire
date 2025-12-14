@@ -1,29 +1,31 @@
 using System.CommandLine;
-using Runewire.Core.Domain.Recipes;
-using Runewire.Core.Domain.Techniques;
-using Runewire.Core.Domain.Validation;
+using Runewire.Cli.Infrastructure;
+using Runewire.Domain.Recipes;
+using Runewire.Domain.Validation;
 using Runewire.Core.Infrastructure.Recipes;
+using Runewire.Core.Infrastructure.Validation;
 
 namespace Runewire.Cli.Commands;
 
 /// <summary>
-/// CLI command for validating recipe YAML files.
+/// Validates a recipe YAML file.
+/// This does not run anything. It just loads + checks the recipe and prints errors.
 /// </summary>
 public static class RecipeValidateCommand
 {
     public const string CommandName = "validate";
 
-    // Exit codes for the 'validate' command.
+    // Exit codes for validate:
+    // 0 = valid
+    // 1 = recipe loaded but has validation errors
+    // 2 = file missing, parse/load error, IO, or unexpected error
     private const int ExitCodeSuccess = 0;
     private const int ExitCodeValidationError = 1;
     private const int ExitCodeLoadOrOtherError = 2;
 
-    // Technique registry is immutable and safe to reuse across invocations.
-    private static readonly BuiltInInjectionTechniqueRegistry TechniqueRegistry = new();
-
     /// <summary>
-    /// Creates the 'validate' command:
-    ///   runewire validate &lt;recipe.yaml&gt;
+    /// Creates the command:
+    /// runewire validate recipe.yaml
     /// </summary>
     public static Command Create()
     {
@@ -43,7 +45,7 @@ public static class RecipeValidateCommand
 
             if (recipeFile is null)
             {
-                WriteError("No recipe file specified.");
+                CliConsole.WriteError("No recipe file specified.");
                 return ExitCodeLoadOrOtherError;
             }
 
@@ -54,87 +56,59 @@ public static class RecipeValidateCommand
     }
 
     /// <summary>
-    /// Core handler logic for validation. Returns an exit code:
-    /// 0 = valid
-    /// 1 = validation errors (semantic)
-    /// 2 = load/structural/other error
+    /// Main validate logic. Returns an exit code (see constants above).
     /// </summary>
     private static int Handle(FileInfo recipeFile)
     {
         if (!recipeFile.Exists)
         {
-            WriteError($"Recipe file not found: {recipeFile.FullName}");
+            CliConsole.WriteError($"Recipe file not found: {recipeFile.FullName}");
             return ExitCodeLoadOrOtherError;
         }
 
-        BasicRecipeValidator validator = CreateValidator();
+        // Use the shared factory so CLI and other entry points all validate the same way.
+        // Saves me from chasing dumb mismatches where one accepts a recipe and the other rejects it.
+        BasicRecipeValidator validator = RecipeValidatorFactory.CreateDefaultValidator();
         YamlRecipeLoader loader = new(validator);
 
         try
         {
             RunewireRecipe recipe = loader.LoadFromFile(recipeFile.FullName);
 
-            WriteSuccess($"Recipe is valid: {recipe.Name}");
+            CliConsole.WriteSuccess($"Recipe is valid: {recipe.Name}");
             return ExitCodeSuccess;
         }
         catch (RecipeLoadException ex)
         {
+            // Loaded enough to produce semantic validation errors.
             if (ex.ValidationErrors.Count > 0)
             {
-                WriteHeader("Recipe is invalid.", ConsoleColor.Yellow);
+                CliConsole.WriteHeader("Recipe is invalid.", ConsoleColor.Yellow);
                 foreach (RecipeValidationError error in ex.ValidationErrors)
                 {
-                    WriteBullet($"[{error.Code}] {error.Message}", ConsoleColor.Yellow);
+                    CliConsole.WriteBullet($"[{error.Code}] {error.Message}", ConsoleColor.Yellow);
                 }
 
                 return ExitCodeValidationError;
             }
 
-            // Structural / I/O / parse error.
-            WriteHeader("Failed to load recipe.", ConsoleColor.Red);
-            WriteError(ex.Message);
+            // Parse/IO/structural failure.
+            CliConsole.WriteHeader("Failed to load recipe.", ConsoleColor.Red);
+            CliConsole.WriteError(ex.Message);
 
             if (ex.InnerException is not null)
             {
-                WriteDetail($"Inner: {ex.InnerException.Message}");
+                CliConsole.WriteDetail($"Inner: {ex.InnerException.Message}");
             }
 
             return ExitCodeLoadOrOtherError;
         }
         catch (Exception ex)
         {
-            WriteHeader("Unexpected error while validating recipe.", ConsoleColor.Red);
-            WriteError(ex.Message);
+            // Just fail clean.
+            CliConsole.WriteHeader("Unexpected error while validating recipe.", ConsoleColor.Red);
+            CliConsole.WriteError(ex.Message);
             return ExitCodeLoadOrOtherError;
         }
     }
-
-    private static BasicRecipeValidator CreateValidator()
-    {
-        // The registry is immutable, so we can safely reuse it across runs, and just
-        // provide a lookup function to the validator.
-        return new BasicRecipeValidator(techniqueName => TechniqueRegistry.GetByName(techniqueName) is not null);
-    }
-
-    #region Console helpers
-
-    private static void WriteSuccess(string message) => WriteLineWithColor(message, ConsoleColor.Green);
-
-    private static void WriteError(string message) => WriteLineWithColor(message, ConsoleColor.Red);
-
-    private static void WriteDetail(string message) => WriteLineWithColor(message, ConsoleColor.DarkGray);
-
-    private static void WriteHeader(string message, ConsoleColor color) => WriteLineWithColor(message, color);
-
-    private static void WriteBullet(string message, ConsoleColor color) => WriteLineWithColor($" - {message}", color);
-
-    private static void WriteLineWithColor(string message, ConsoleColor color)
-    {
-        ConsoleColor original = Console.ForegroundColor;
-        Console.ForegroundColor = color;
-        Console.WriteLine(message);
-        Console.ForegroundColor = original;
-    }
-
-    #endregion
 }

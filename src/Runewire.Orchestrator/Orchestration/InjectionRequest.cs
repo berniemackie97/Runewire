@@ -1,9 +1,10 @@
-using Runewire.Core.Domain.Recipes;
+using Runewire.Domain.Recipes;
 
 namespace Runewire.Orchestrator.Orchestration;
 
 /// <summary>
-/// Immutable description of a single injection operation.
+/// Injection request produced from a recipe.
+/// This is what the engine actually executes.
 /// </summary>
 public sealed record InjectionRequest(
     string RecipeName,

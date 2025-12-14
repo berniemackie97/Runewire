@@ -1,4 +1,4 @@
-using Runewire.Core.Domain.Recipes;
+using Runewire.Domain.Recipes;
 using Runewire.Orchestrator.Orchestration;
 
 namespace Runewire.Orchestrator.Tests.Orchestration;

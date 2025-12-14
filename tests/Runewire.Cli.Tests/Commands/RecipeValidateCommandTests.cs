@@ -1,14 +1,16 @@
+using Runewire.Cli.Commands;
+
 namespace Runewire.Cli.Tests.Commands;
 
 /// <summary>
-/// End-to-end tests for the <c>validate</c> CLI command.
+/// End to end tests for validate.
 /// </summary>
 public sealed class RecipeValidateCommandTests
 {
     [Fact]
     public async Task Validate_valid_recipe_returns_exit_code_0_and_success_output()
     {
-        // Setup
+        // Arrange
         string recipePath = CLITestHarness.CreateTempRecipeFile(
             "runewire-validate-test",
             """
@@ -27,8 +29,8 @@ public sealed class RecipeValidateCommandTests
             """
         );
 
-        // Run
-        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("validate", recipePath);
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeValidateCommand.CommandName, recipePath);
 
         // Assert
         Assert.Equal(0, exitCode);
@@ -39,7 +41,7 @@ public sealed class RecipeValidateCommandTests
     [Fact]
     public async Task Validate_invalid_recipe_returns_exit_code_1_and_lists_errors()
     {
-        // Setup
+        // Arrange
         string recipePath = CLITestHarness.CreateTempRecipeFile(
             "runewire-validate-invalid-test",
             """
@@ -57,8 +59,8 @@ public sealed class RecipeValidateCommandTests
             """
         );
 
-        // Run
-        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("validate", recipePath);
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeValidateCommand.CommandName, recipePath);
 
         // Assert
         Assert.Equal(1, exitCode);
@@ -73,11 +75,11 @@ public sealed class RecipeValidateCommandTests
     [Fact]
     public async Task Validate_missing_file_returns_exit_code_2_and_error_message()
     {
-        // Setup
+        // Arrange
         string recipePath = Path.Combine(Path.GetTempPath(), $"runewire-validate-missing-{Guid.NewGuid():N}.yaml");
 
-        // Run
-        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("validate", recipePath);
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeValidateCommand.CommandName, recipePath);
 
         // Assert
         Assert.Equal(2, exitCode);
@@ -87,13 +89,13 @@ public sealed class RecipeValidateCommandTests
     [Fact]
     public async Task No_arguments_shows_help_and_returns_non_zero()
     {
-        // Run
+        // Act
         (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync();
 
         // Assert
         Assert.NotEqual(0, exitCode);
         Assert.Contains("Required command was not provided", output);
         Assert.Contains("Runewire process injection lab CLI", output);
-        Assert.Contains("validate <recipe>", output);
+        Assert.Contains(RecipeValidateCommand.CommandName, output);
     }
 }

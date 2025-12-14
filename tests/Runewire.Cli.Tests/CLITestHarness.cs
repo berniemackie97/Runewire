@@ -3,23 +3,17 @@ using System.Text;
 namespace Runewire.Cli.Tests;
 
 /// <summary>
-/// Shared helpers for invoking the Runewire CLI in tests.
-/// Handles console redirection and temporary recipe file creation.
+/// Test helper for running the CLI and capturing output.
 /// </summary>
-public static class CLITestHarness
+internal static class CLITestHarness
 {
     /// <summary>
-    /// Invokes the Runewire CLI entrypoint with the provided arguments and
-    /// captures everything written to <see cref="Console.Out"/> and <see cref="Console.Error"/>.
+    /// Run the CLI entry point and capture stdout + stderr.
     /// </summary>
-    /// <param name="args">Arguments to pass to <see cref="Program.Main(string[])"/>.</param>
-    /// <returns>
-    /// A task that completes with a tuple:
-    ///  - <c>exitCode</c>: the process exit code returned by the CLI.
-    ///  - <c>stdout</c>: the captured console output.
-    /// </returns>
     public static async Task<(int exitCode, string stdout)> RunWithCapturedOutputAsync(params string[] args)
     {
+        args ??= [];
+
         TextWriter originalOut = Console.Out;
         TextWriter originalErr = Console.Error;
 
@@ -31,8 +25,11 @@ public static class CLITestHarness
 
         try
         {
-            int exitCode = await Program.Main(args);
+            int exitCode = await Program.Main(args).ConfigureAwait(false);
+
+            // StringWriter writes into the StringBuilder already. Flush is just to be safe.
             writer.Flush();
+
             return (exitCode, sb.ToString());
         }
         finally
@@ -43,14 +40,16 @@ public static class CLITestHarness
     }
 
     /// <summary>
-    /// Creates a temporary YAML recipe file on disk with the given contents.
+    /// Create a temp YAML recipe file and return the path.
+    /// Prefix is just to make debugging temp files less annoying.
     /// </summary>
-    /// <param name="prefix">A prefix to include in the file name for debugging purposes.</param>
-    /// <param name="contents">The YAML contents to write.</param>
-    /// <returns>The full path to the created file.</returns>
     public static string CreateTempRecipeFile(string prefix, string contents)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(prefix);
+        ArgumentNullException.ThrowIfNull(contents);
+
         string path = Path.Combine(Path.GetTempPath(), $"{prefix}-{Guid.NewGuid():N}.yaml");
+
         File.WriteAllText(path, contents);
         return path;
     }

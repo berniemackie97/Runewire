@@ -6,48 +6,38 @@ namespace Runewire.Cli;
 public static class Program
 {
     /// <summary>
-    /// Main entry method. Builds the root command, parses the command line,
-    /// and asynchronously invokes the configured handler pipeline.
-    ///
-    /// That keeps parsing and invocation clearly separated and allows
-    /// all handlers to be fully asynchronous.
+    /// CLI entry point.
+    /// Keep this boring. Build commands, parse args, invoke.
+    /// Returning Task<int> keeps everything async without weird sync blocking.
     /// </summary>
-    /// 
-    /// <param name="args">Arguments passed from the command line.</param>
-    /// 
-    /// <returns>
-    /// A task that completes with the process exit code produced by the invoked command.
-    /// </returns>
+    /// <param name="args">Raw command line args.</param>
+    /// <returns>The exit code from whatever command ran.</returns>
     public static Task<int> Main(string[] args)
     {
         RootCommand rootCommand = BuildRootCommand();
 
-        // Modern System.CommandLine pattern:
-        //   1. Parse
-        //   2. InvokeAsync on the ParseResult
         ParseResult parseResult = rootCommand.Parse(args);
         return parseResult.InvokeAsync();
     }
 
     /// <summary>
-    /// Constructs the Runewire root command and registers all top level subcommands.
+    /// Builds the root command and registers the top level commands.
+    /// Add new commands here.
     /// </summary>
-    /// 
-    /// <returns>The configured <see cref="RootCommand"/> for the Runewire CLI.</returns>
     internal static RootCommand BuildRootCommand()
     {
         RootCommand root = new("Runewire process injection lab CLI")
         {
-            // Core recipe commands:
+            // Core recipe commands. This is the main workflow right now.
             RecipeValidateCommand.Create(),
             RecipeRunCommand.Create(),
         };
 
-        // Future extension points:
-        // - Agent management (register/list/remove agents)
-        // - Technique and injector introspection
-        // - Run history / telemetry queries
-        // - Lab configuration and policy inspection
+        // Stuff I'll will probably add later:
+        // agent management
+        // technique/injector introspection
+        // run history / telemetry queries
+        // lab config and policy inspection
 
         return root;
     }

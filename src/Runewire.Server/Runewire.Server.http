@@ -1,0 +1,6 @@
+@Runewire.Server_HostAddress = http://localhost:5127
+
+GET {{Runewire.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

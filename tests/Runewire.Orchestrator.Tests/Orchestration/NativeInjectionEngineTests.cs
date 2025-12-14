@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
-using Runewire.Core.Domain.Recipes;
-using Runewire.Orchestrator.NativeInterop;
+using Runewire.Domain.Recipes;
+using Runewire.Orchestrator.Infrastructure.InjectionEngines;
+using Runewire.Orchestrator.Infrastructure.NativeInterop;
 using Runewire.Orchestrator.Orchestration;
 
 namespace Runewire.Orchestrator.Tests.Orchestration;
@@ -132,14 +133,9 @@ public class NativeInjectionEngineTests
         }
     }
 
-    private sealed class ThrowingFakeInvoker : INativeInjectorInvoker
+    private sealed class ThrowingFakeInvoker(Exception exception) : INativeInjectorInvoker
     {
-        private readonly Exception _exception;
-
-        public ThrowingFakeInvoker(Exception exception)
-        {
-            _exception = exception;
-        }
+        private readonly Exception _exception = exception;
 
         public int Inject(in RwInjectionRequest request, out RwInjectionResult result)
         {

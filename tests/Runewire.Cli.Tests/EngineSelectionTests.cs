@@ -1,7 +1,7 @@
 namespace Runewire.Cli.Tests;
 
 /// <summary>
-/// Tests around engine-selection behavior (e.g., the <c>--native</c> flag).
+/// Engine selection tests.
 /// </summary>
 public sealed class EngineSelectionTests
 {
@@ -31,10 +31,7 @@ public sealed class EngineSelectionTests
         (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("run", "--native", recipePath);
 
         // Assert
-        // For now we only assert that the CLI recognizes the flag and
-        // emits a clear message about using the native engine. The actual
-        // wiring to NativeInjectionEngine will come in a later step.
-        Assert.NotEqual(1, exitCode); // should not be a hard failure
+        Assert.NotEqual(1, exitCode);
         Assert.Contains("Using native injection engine", output);
         Assert.Contains("demo-run", output);
     }

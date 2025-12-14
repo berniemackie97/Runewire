@@ -1,14 +1,16 @@
+using Runewire.Cli.Commands;
+
 namespace Runewire.Cli.Tests.Commands;
 
 /// <summary>
-/// End-to-end tests for the <c>run</c> CLI command executing recipes.
+/// End to end tests for run.
 /// </summary>
 public sealed class RecipeRunCommandTests
 {
     [Fact]
     public async Task Run_valid_recipe_returns_exit_code_0_and_reports_success()
     {
-        // Setup
+        // Arrange
         string recipePath = CLITestHarness.CreateTempRecipeFile(
             "runewire-run-test",
             """
@@ -27,8 +29,8 @@ public sealed class RecipeRunCommandTests
             """
         );
 
-        // Run
-        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("run", recipePath);
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeRunCommand.CommandName, recipePath);
 
         // Assert
         Assert.Equal(0, exitCode);
@@ -39,7 +41,7 @@ public sealed class RecipeRunCommandTests
     [Fact]
     public async Task Run_invalid_recipe_returns_exit_code_1_and_lists_errors()
     {
-        // Setup
+        // Arrange
         string recipePath = CLITestHarness.CreateTempRecipeFile(
             "runewire-run-invalid-test",
             """
@@ -57,8 +59,8 @@ public sealed class RecipeRunCommandTests
             """
         );
 
-        // Run
-        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("run", recipePath);
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeRunCommand.CommandName, recipePath);
 
         // Assert
         Assert.Equal(1, exitCode);
@@ -73,11 +75,11 @@ public sealed class RecipeRunCommandTests
     [Fact]
     public async Task Run_missing_file_returns_exit_code_2_and_error_message()
     {
-        // Setup
+        // Arrange
         string recipePath = Path.Combine(Path.GetTempPath(), $"runewire-run-missing-{Guid.NewGuid():N}.yaml");
 
-        // Run
-        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync("run", recipePath);
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeRunCommand.CommandName, recipePath);
 
         // Assert
         Assert.Equal(2, exitCode);

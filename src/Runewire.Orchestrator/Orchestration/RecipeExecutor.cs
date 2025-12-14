@@ -1,26 +1,29 @@
-using Runewire.Core.Domain.Recipes;
+using Runewire.Domain.Recipes;
 
 namespace Runewire.Orchestrator.Orchestration;
 
 /// <summary>
-/// High-level orchestrator that executes validated recipes by delegating
-/// to the configured <see cref="IInjectionEngine"/>.
+/// Executes a validated recipe by mapping it into an InjectionRequest and sending it to the engine.
 /// </summary>
 public sealed class RecipeExecutor(IInjectionEngine injectionEngine)
 {
     private readonly IInjectionEngine _injectionEngine = injectionEngine ?? throw new ArgumentNullException(nameof(injectionEngine));
 
     /// <summary>
-    /// Execute a validated recipe using the injection engine.
+    /// Execute a recipe using the configured engine.
     /// </summary>
     public Task<InjectionResult> ExecuteAsync(RunewireRecipe recipe, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(recipe);
+        cancellationToken.ThrowIfCancellationRequested();
 
         InjectionRequest request = MapToRequest(recipe);
         return _injectionEngine.ExecuteAsync(request, cancellationToken);
     }
 
+    /// <summary>
+    /// Convert the domain recipe into the engine request shape.
+    /// </summary>
     private static InjectionRequest MapToRequest(RunewireRecipe recipe)
     {
         return new InjectionRequest(
