@@ -85,4 +85,31 @@ public sealed class RecipeRunCommandTests
         Assert.Equal(2, exitCode);
         Assert.Contains("Recipe file not found", output);
     }
+
+    [Fact]
+    public async Task Run_json_recipe_returns_exit_code_0_and_reports_success()
+    {
+        // Arrange
+        string recipePath = CLITestHarness.CreateTempRecipeFile(
+            "runewire-run-json-test",
+            """
+            {
+              "name": "demo-run-json",
+              "description": "Demo run via JSON.",
+              "target": { "kind": "processByName", "processName": "explorer.exe" },
+              "technique": { "name": "CreateRemoteThread" },
+              "payload": { "path": "C:\\lab\\payloads\\demo.dll" },
+              "safety": { "requireInteractiveConsent": true, "allowKernelDrivers": false }
+            }
+            """,
+            extension: "json");
+
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeRunCommand.CommandName, recipePath);
+
+        // Assert
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Injection succeeded", output);
+        Assert.Contains("demo-run-json", output);
+    }
 }

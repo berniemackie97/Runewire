@@ -40,15 +40,16 @@ internal static class CLITestHarness
     }
 
     /// <summary>
-    /// Create a temp YAML recipe file and return the path.
+    /// Create a temp recipe file with the provided extension and return the path.
     /// Prefix is just to make debugging temp files less annoying.
     /// </summary>
-    public static string CreateTempRecipeFile(string prefix, string contents)
+    public static string CreateTempRecipeFile(string prefix, string contents, string extension = "yaml")
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(prefix);
         ArgumentNullException.ThrowIfNull(contents);
+        ArgumentException.ThrowIfNullOrWhiteSpace(extension);
 
-        string path = Path.Combine(Path.GetTempPath(), $"{prefix}-{Guid.NewGuid():N}.yaml");
+        string path = Path.Combine(Path.GetTempPath(), $"{prefix}-{Guid.NewGuid():N}.{extension.TrimStart('.')}");
 
         File.WriteAllText(path, contents);
         return path;

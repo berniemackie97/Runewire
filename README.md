@@ -22,6 +22,7 @@ CLI quick start:
 ```bash
 dotnet run --project src/Runewire.Cli -- validate demo-recipe.yaml   # validate a recipe
 dotnet run --project src/Runewire.Cli -- run demo-recipe.yaml        # dry-run execution
+dotnet run --project src/Runewire.Cli -- validate demo-recipe.json   # JSON works too
 dotnet run --project src/Runewire.Cli -- techniques                  # list built-in techniques
 ```
 

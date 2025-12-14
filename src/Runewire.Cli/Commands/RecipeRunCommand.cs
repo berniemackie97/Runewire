@@ -85,7 +85,7 @@ public static class RecipeRunCommand
 
         // Shared validator factory so CLI / Studio / Server stay in sync.
         BasicRecipeValidator validator = RecipeValidatorFactory.CreateDefaultValidator();
-        YamlRecipeLoader loader = new(validator);
+        IRecipeLoader loader = RecipeLoaderSelector.CreateForPath(recipeFile.FullName, validator);
 
         IInjectionEngine engine = CreateInjectionEngine(useNativeEngine);
         RecipeExecutor executor = new(engine);

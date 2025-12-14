@@ -69,7 +69,7 @@ public static class RecipeValidateCommand
         // Use the shared factory so CLI and other entry points all validate the same way.
         // Saves me from chasing dumb mismatches where one accepts a recipe and the other rejects it.
         BasicRecipeValidator validator = RecipeValidatorFactory.CreateDefaultValidator();
-        YamlRecipeLoader loader = new(validator);
+        IRecipeLoader loader = RecipeLoaderSelector.CreateForPath(recipeFile.FullName, validator);
 
         try
         {

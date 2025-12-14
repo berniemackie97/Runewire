@@ -98,4 +98,31 @@ public sealed class RecipeValidateCommandTests
         Assert.Contains("Runewire process injection lab CLI", output);
         Assert.Contains(RecipeValidateCommand.CommandName, output);
     }
+
+    [Fact]
+    public async Task Validate_json_recipe_returns_exit_code_0_and_success_output()
+    {
+        // Arrange
+        string recipePath = CLITestHarness.CreateTempRecipeFile(
+            "runewire-validate-json-test",
+            """
+            {
+              "name": "demo-recipe-json",
+              "description": "Demo injection into explorer",
+              "target": { "kind": "processByName", "processName": "explorer.exe" },
+              "technique": { "name": "CreateRemoteThread" },
+              "payload": { "path": "C:\\lab\\payloads\\demo.dll" },
+              "safety": { "requireInteractiveConsent": true, "allowKernelDrivers": false }
+            }
+            """,
+            extension: "json");
+
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeValidateCommand.CommandName, recipePath);
+
+        // Assert
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Recipe is valid", output);
+        Assert.Contains("demo-recipe-json", output);
+    }
 }
