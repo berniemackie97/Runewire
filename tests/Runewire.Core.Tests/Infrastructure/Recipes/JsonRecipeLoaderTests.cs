@@ -191,6 +191,33 @@ public sealed class JsonRecipeLoaderTests
         Assert.Contains(ex.ValidationErrors!, e => e.Code == "PAYLOAD_PATH_NOT_FOUND");
     }
 
+    [Fact]
+    public void LoadFromString_parses_technique_parameters()
+    {
+        // Arrange
+        string payloadPath = CreateTempPayloadFile();
+        string jsonTemplate = """
+            {
+              "name": "demo-recipe",
+              "target": { "kind": "processByName", "processName": "explorer.exe" },
+              "technique": { "name": "CreateRemoteThread", "parameters": { "foo": "bar", "mode": "test" } },
+              "payload": { "path": "__PAYLOAD__" },
+              "safety": { "requireInteractiveConsent": true, "allowKernelDrivers": false }
+            }
+            """;
+        string json = jsonTemplate.Replace("__PAYLOAD__", EscapeForJson(payloadPath), StringComparison.Ordinal);
+
+        JsonRecipeLoader loader = CreateLoader();
+
+        // Act
+        RunewireRecipe recipe = loader.LoadFromString(json);
+
+        // Assert
+        Assert.NotNull(recipe.Technique.Parameters);
+        Assert.Equal("bar", recipe.Technique.Parameters!["foo"]);
+        Assert.Equal("test", recipe.Technique.Parameters!["mode"]);
+    }
+
     private static string CreateTempPayloadFile()
     {
         string path = Path.Combine(Path.GetTempPath(), $"runewire-payload-{Guid.NewGuid():N}.dll");

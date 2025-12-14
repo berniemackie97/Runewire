@@ -24,6 +24,7 @@ public sealed class BuiltInInjectionTechniqueRegistryTests
         Assert.Equal("User-mode DLL injection", createRemoteThread.Category);
         Assert.False(string.IsNullOrWhiteSpace(createRemoteThread.Description));
         Assert.False(createRemoteThread.RequiresKernelMode);
+        Assert.Contains(TechniquePlatform.Windows, createRemoteThread.Platforms);
     }
 
     [Fact]

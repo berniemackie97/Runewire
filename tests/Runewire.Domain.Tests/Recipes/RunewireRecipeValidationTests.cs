@@ -1,5 +1,6 @@
 using Runewire.Domain.Recipes;
 using Runewire.Domain.Validation;
+using Runewire.Domain.Techniques;
 
 namespace Runewire.Domain.Tests.Recipes;
 
@@ -175,8 +176,8 @@ public class RunewireRecipeValidationTests
             Technique = new InjectionTechnique("TotallyFakeTechnique")
         };
 
-        // Registry delegate that says "no technique is known".
-        BasicRecipeValidator validator = new(_ => false);
+        FakeRegistry registry = new([]);
+        BasicRecipeValidator validator = new(registry);
 
         // Act
         RecipeValidationResult result = validator.Validate(recipe);
@@ -184,6 +185,70 @@ public class RunewireRecipeValidationTests
         // Assert
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "TECHNIQUE_UNKNOWN");
+    }
+
+    [Fact]
+    public void Technique_requiring_kernel_mode_fails_when_kernel_not_allowed()
+    {
+        // Arrange
+        InjectionTechniqueDescriptor kernelTechnique = new(
+            InjectionTechniqueId.Unknown,
+            name: "KernelOnly",
+            displayName: "Kernel only",
+            category: "Kernel",
+            description: "Kernel-only test",
+            requiresKernelMode: true,
+            platforms: new[] { TechniquePlatform.Windows },
+            requiredParameters: Array.Empty<string>());
+
+        FakeRegistry registry = new([kernelTechnique]);
+
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Technique = new InjectionTechnique(kernelTechnique.Name),
+            AllowKernelDrivers = false,
+            RequireInteractiveConsent = true
+        };
+
+        BasicRecipeValidator validator = new(registry);
+
+        // Act
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "TECHNIQUE_KERNEL_MODE_REQUIRED");
+    }
+
+    [Fact]
+    public void Technique_required_parameters_must_be_present()
+    {
+        // Arrange
+        InjectionTechniqueDescriptor technique = new(
+            InjectionTechniqueId.Unknown,
+            name: "RequiresParam",
+            displayName: "Requires param",
+            category: "User-mode",
+            description: "Needs param",
+            requiresKernelMode: false,
+            platforms: new[] { TechniquePlatform.Windows },
+            requiredParameters: new[] { "dllPath" });
+
+        FakeRegistry registry = new([technique]);
+
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            Technique = new InjectionTechnique(technique.Name, Parameters: new Dictionary<string, string> { { "dllPath", "" } })
+        };
+
+        BasicRecipeValidator validator = new(registry);
+
+        // Act
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        // Assert
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "TECHNIQUE_PARAM_REQUIRED");
     }
 
     [Fact]
@@ -201,7 +266,7 @@ public class RunewireRecipeValidationTests
 
         // Use a registry that rejects everything, in case the technique
         // name sneaks past the whitespace check in the future.
-        BasicRecipeValidator validator = new(_ => false);
+        BasicRecipeValidator validator = new(new FakeRegistry([]));
 
         // Act
         RecipeValidationResult result = validator.Validate(recipe);
@@ -215,5 +280,14 @@ public class RunewireRecipeValidationTests
         Assert.Contains(result.Errors, e => e.Code == "TECHNIQUE_NAME_REQUIRED");
         Assert.Contains(result.Errors, e => e.Code == "PAYLOAD_PATH_REQUIRED");
         Assert.Contains(result.Errors, e => e.Code == "SAFETY_KERNEL_DRIVER_CONSENT_REQUIRED");
+    }
+
+    private sealed class FakeRegistry(IReadOnlyList<InjectionTechniqueDescriptor> techniques) : IInjectionTechniqueRegistry
+    {
+        public IEnumerable<InjectionTechniqueDescriptor> GetAll() => techniques;
+
+        public InjectionTechniqueDescriptor? GetById(InjectionTechniqueId id) => techniques.FirstOrDefault(t => t.Id == id);
+
+        public InjectionTechniqueDescriptor? GetByName(string name) => techniques.FirstOrDefault(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
     }
 }

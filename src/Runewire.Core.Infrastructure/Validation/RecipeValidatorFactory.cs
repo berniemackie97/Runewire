@@ -17,6 +17,6 @@ public static class RecipeValidatorFactory
     /// </summary>
     public static BasicRecipeValidator CreateDefaultValidator()
     {
-        return new BasicRecipeValidator(techniqueName => TechniqueRegistry.GetByName(techniqueName) is not null);
+        return new BasicRecipeValidator(TechniqueRegistry);
     }
 }

@@ -11,4 +11,9 @@ internal sealed class RecipeTechniqueDocument
     /// This is the lookup key for the technique registry.
     /// </summary>
     public string? Name { get; set; }
+
+    /// <summary>
+    /// Optional parameters for the technique, if required by the technique.
+    /// </summary>
+    public Dictionary<string, string>? Parameters { get; set; }
 }

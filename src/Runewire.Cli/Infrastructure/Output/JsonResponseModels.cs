@@ -1,4 +1,5 @@
 using Runewire.Domain.Validation;
+using Runewire.Domain.Techniques;
 using Runewire.Orchestrator.Infrastructure.Preflight;
 using Runewire.Orchestrator.Infrastructure.Services;
 using Runewire.Orchestrator.Orchestration;
@@ -16,6 +17,7 @@ public sealed record PreflightSummaryDto(
     string? ProcessArchitecture
 );
 public sealed record InjectionResultDto(bool Success, string? ErrorCode, string? ErrorMessage, DateTimeOffset StartedAtUtc, DateTimeOffset CompletedAtUtc);
+public sealed record TechniqueDto(string Name, string DisplayName, string Category, string Description, bool RequiresKernelMode, IReadOnlyList<string> Platforms, IReadOnlyList<string> RequiredParameters);
 
 public sealed record ValidationResponseDto(
     string Status,
@@ -39,6 +41,8 @@ public sealed record RunResponseDto(
     string? Inner
 );
 
+public sealed record TechniqueListResponseDto(string Status, MetaDto Meta, IReadOnlyList<TechniqueDto> Techniques);
+
 public static class JsonResponseFactory
 {
     public static ValidationResponseDto ValidationSuccess(RecipeValidationOutcome outcome) =>
@@ -56,6 +60,9 @@ public static class JsonResponseFactory
 
     public static RunResponseDto RunError(string recipeName, string engine, string message, Exception? ex = null) =>
         new("error", recipeName, engine, BuildMeta(), null, null, null, message, ex?.Message);
+
+    public static TechniqueListResponseDto TechniqueList(IEnumerable<InjectionTechniqueDescriptor> techniques) =>
+        new("ok", BuildMeta(), techniques.Select(MapTechnique).ToArray());
 
     private static MetaDto BuildMeta()
     {
@@ -78,4 +85,10 @@ public static class JsonResponseFactory
         new(result.Success, result.ErrorCode, result.ErrorMessage, result.StartedAtUtc, result.CompletedAtUtc);
 
     private static ErrorDto[] MapErrors(IEnumerable<RecipeValidationError> errors) => [.. errors.Select(e => new ErrorDto(e.Code, e.Message))];
+
+    private static TechniqueDto MapTechnique(InjectionTechniqueDescriptor descriptor)
+    {
+        IReadOnlyList<string> platforms = descriptor.Platforms.Select(p => p.ToString()).ToArray();
+        return new TechniqueDto(descriptor.Name, descriptor.DisplayName, descriptor.Category, descriptor.Description, descriptor.RequiresKernelMode, platforms, descriptor.RequiredParameters);
+    }
 }

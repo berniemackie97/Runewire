@@ -226,13 +226,4 @@ public sealed class PayloadPreflightChecker : IPayloadPreflightChecker
         return true;
     }
 
-    private readonly record struct PayloadHeaderInfo(PayloadKind Kind, string? Architecture);
-
-    private enum PayloadKind
-    {
-        Unknown = 0,
-        PE = 1,
-        ELF = 2,
-        MachO = 3,
-    }
 }

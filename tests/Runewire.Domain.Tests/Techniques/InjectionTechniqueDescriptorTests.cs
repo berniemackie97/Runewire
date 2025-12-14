@@ -21,7 +21,9 @@ public sealed class InjectionTechniqueDescriptorTests
             displayName: "CreateRemoteThread DLL Injection",
             category: "User-mode DLL injection",
             description: "Injects a DLL into a target process.",
-            requiresKernelMode: false);
+            requiresKernelMode: false,
+            platforms: new[] { TechniquePlatform.Windows },
+            requiredParameters: new[] { "paramA" });
 
         // Assert
         Assert.Equal(id, descriptor.Id);
@@ -30,6 +32,8 @@ public sealed class InjectionTechniqueDescriptorTests
         Assert.Equal("User-mode DLL injection", descriptor.Category);
         Assert.Equal("Injects a DLL into a target process.", descriptor.Description);
         Assert.False(descriptor.RequiresKernelMode);
+        Assert.Contains(TechniquePlatform.Windows, descriptor.Platforms);
+        Assert.Contains("paramA", descriptor.RequiredParameters);
     }
 
     [Fact]
@@ -41,7 +45,8 @@ public sealed class InjectionTechniqueDescriptorTests
                 displayName: "Display",
                 category: "Category",
                 description: "Description",
-                requiresKernelMode: false));
+                requiresKernelMode: false,
+                platforms: new[] { TechniquePlatform.Windows }));
     }
 
     [Fact]
@@ -53,7 +58,8 @@ public sealed class InjectionTechniqueDescriptorTests
                 displayName: "",
                 category: "Category",
                 description: "Description",
-                requiresKernelMode: false));
+                requiresKernelMode: false,
+                platforms: new[] { TechniquePlatform.Windows }));
     }
 
     [Fact]
@@ -65,7 +71,8 @@ public sealed class InjectionTechniqueDescriptorTests
                 displayName: "Display",
                 category: "",
                 description: "Description",
-                requiresKernelMode: false));
+                requiresKernelMode: false,
+                platforms: new[] { TechniquePlatform.Windows }));
     }
 
     [Fact]
@@ -77,6 +84,34 @@ public sealed class InjectionTechniqueDescriptorTests
                 displayName: "Display",
                 category: "Category",
                 description: "",
-                requiresKernelMode: false));
+                requiresKernelMode: false,
+                platforms: new[] { TechniquePlatform.Windows }));
+    }
+
+    [Fact]
+    public void Ctor_throws_when_no_platforms_provided()
+    {
+        Assert.Throws<ArgumentException>(() => new InjectionTechniqueDescriptor(
+                InjectionTechniqueId.Unknown,
+                name: "Name",
+                displayName: "Display",
+                category: "Category",
+                description: "Description",
+                requiresKernelMode: false,
+                platforms: Array.Empty<TechniquePlatform>()));
+    }
+
+    [Fact]
+    public void Ctor_throws_when_required_parameters_contains_empty()
+    {
+        Assert.Throws<ArgumentException>(() => new InjectionTechniqueDescriptor(
+                InjectionTechniqueId.Unknown,
+                name: "Name",
+                displayName: "Display",
+                category: "Category",
+                description: "Description",
+                requiresKernelMode: false,
+                platforms: new[] { TechniquePlatform.Windows },
+                requiredParameters: new[] { "ok", "  " }));
     }
 }

@@ -23,14 +23,16 @@ public sealed class TechniqueCatalogTests
                 displayName: "CRT",
                 category: "User-mode",
                 description: "desc",
-                requiresKernelMode: false),
+                requiresKernelMode: false,
+                platforms: new[] { TechniquePlatform.Windows }),
             new InjectionTechniqueDescriptor(
                 InjectionTechniqueId.Unknown,
                 name: "apc",
                 displayName: "APC",
                 category: "User-mode",
                 description: "desc",
-                requiresKernelMode: false),
+                requiresKernelMode: false,
+                platforms: new[] { TechniquePlatform.Windows }),
         ]);
 
         TechniqueCatalog catalog = new(registry);

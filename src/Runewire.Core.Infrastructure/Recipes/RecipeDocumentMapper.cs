@@ -29,7 +29,8 @@ internal static class RecipeDocumentMapper
         string? description = doc.Description;
 
         string techniqueName = doc.Technique.Name ?? string.Empty;
-        InjectionTechnique technique = new(techniqueName);
+        IReadOnlyDictionary<string, string>? techniqueParameters = doc.Technique.Parameters;
+        InjectionTechnique technique = new(techniqueName, techniqueParameters);
 
         RecipeTargetKind targetKind = ParseTargetKind(doc.Target.Kind);
         RecipeTarget target = targetKind switch

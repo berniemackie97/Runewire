@@ -1,14 +1,14 @@
 using Runewire.Domain.Recipes;
+using Runewire.Domain.Techniques;
 
 namespace Runewire.Domain.Validation;
 
 /// <summary>
 /// Default recipe validator.
 /// </summary>
-public sealed class BasicRecipeValidator(Func<string, bool>? techniqueExists = null) : IRecipeValidator
+public sealed class BasicRecipeValidator(IInjectionTechniqueRegistry? techniqueRegistry = null) : IRecipeValidator
 {
-    // If no registry callback is provided, treat any non-empty technique name as allowed.
-    private readonly Func<string, bool> _techniqueExists = techniqueExists ?? (_ => true);
+    private readonly IInjectionTechniqueRegistry? _techniqueRegistry = techniqueRegistry;
 
     /// <summary>
     /// Validate a recipe and return all errors found.
@@ -61,10 +61,32 @@ public sealed class BasicRecipeValidator(Func<string, bool>? techniqueExists = n
             return;
         }
 
-        // If a registry callback is provided, enforce that the technique exists.
-        if (!_techniqueExists(name))
+        if (_techniqueRegistry is null)
+        {
+            return;
+        }
+
+        InjectionTechniqueDescriptor? descriptor = _techniqueRegistry.GetByName(name);
+        if (descriptor is null)
         {
             errors.Add(new RecipeValidationError("TECHNIQUE_UNKNOWN", $"Injection technique '{name}' is not registered."));
+            return;
+        }
+
+        if (descriptor.RequiresKernelMode && !recipe.AllowKernelDrivers)
+        {
+            errors.Add(new RecipeValidationError("TECHNIQUE_KERNEL_MODE_REQUIRED", $"Technique '{name}' requires kernel driver support."));
+        }
+
+        if (descriptor.RequiredParameters.Count > 0)
+        {
+            foreach (string requiredParam in descriptor.RequiredParameters)
+            {
+                if (!HasTechniqueParameter(recipe.Technique, requiredParam))
+                {
+                    errors.Add(new RecipeValidationError("TECHNIQUE_PARAM_REQUIRED", $"Technique '{name}' requires parameter '{requiredParam}'."));
+                }
+            }
         }
     }
 
@@ -102,5 +124,15 @@ public sealed class BasicRecipeValidator(Func<string, bool>? techniqueExists = n
         {
             errors.Add(new RecipeValidationError("SAFETY_KERNEL_DRIVER_CONSENT_REQUIRED", "Recipes that allow kernel drivers must require interactive consent."));
         }
+    }
+
+    private static bool HasTechniqueParameter(InjectionTechnique technique, string parameterName)
+    {
+        if (technique.Parameters is null)
+        {
+            return false;
+        }
+
+        return technique.Parameters.TryGetValue(parameterName, out string? value) && !string.IsNullOrWhiteSpace(value);
     }
 }

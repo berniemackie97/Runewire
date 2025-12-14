@@ -67,6 +67,3 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
         throw new RecipeLoadException("Recipe failed preflight.", list);
     }
 }
-
-public sealed record RecipeRunOutcome(RunewireRecipe Recipe, InjectionResult InjectionResult, string Engine, PreflightSummary Preflight);
-public sealed record RecipeValidationOutcome(RunewireRecipe Recipe, TargetPreflightResult TargetPreflight, PayloadPreflightResult PayloadPreflight, PreflightSummary Preflight);

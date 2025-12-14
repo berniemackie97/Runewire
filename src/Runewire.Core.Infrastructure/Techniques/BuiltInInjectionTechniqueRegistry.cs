@@ -1,3 +1,4 @@
+using System;
 using Runewire.Domain.Techniques;
 using System.Collections.Immutable;
 
@@ -28,7 +29,9 @@ public sealed class BuiltInInjectionTechniqueRegistry : IInjectionTechniqueRegis
                 displayName: "CreateRemoteThread DLL Injection",
                 category: "User-mode DLL injection",
                 description: "Injects a DLL into a target process and starts execution using CreateRemoteThread (or equivalent).",
-                requiresKernelMode: false
+                requiresKernelMode: false,
+                platforms: new[] { TechniquePlatform.Windows },
+                requiredParameters: Array.Empty<string>()
             ),
 
             // new InjectionTechniqueDescriptor(

@@ -263,6 +263,39 @@ public sealed class YamlRecipeLoaderTests
         }
     }
 
+    [Fact]
+    public void LoadFromString_parses_technique_parameters()
+    {
+        // Setup
+        string payloadPath = CreateTempPayloadFile();
+        string yaml = $"""
+            name: demo-recipe
+            target:
+              kind: processByName
+              processName: explorer.exe
+            technique:
+              name: CreateRemoteThread
+              parameters:
+                foo: bar
+                mode: test
+            payload:
+              path: {payloadPath}
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        YamlRecipeLoader loader = CreateLoader();
+
+        // Act
+        RunewireRecipe recipe = loader.LoadFromString(yaml);
+
+        // Assert
+        Assert.NotNull(recipe.Technique.Parameters);
+        Assert.Equal("bar", recipe.Technique.Parameters!["foo"]);
+        Assert.Equal("test", recipe.Technique.Parameters!["mode"]);
+    }
+
     private static string CreateTempPayloadFile()
     {
         string path = Path.Combine(Path.GetTempPath(), $"runewire-payload-{Guid.NewGuid():N}.dll");
