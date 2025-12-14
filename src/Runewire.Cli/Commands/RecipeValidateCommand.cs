@@ -3,7 +3,9 @@ using Runewire.Cli.Infrastructure;
 using Runewire.Core.Infrastructure.Recipes;
 using Runewire.Domain.Recipes;
 using Runewire.Domain.Validation;
+using Runewire.Orchestrator.Infrastructure.InjectionEngines;
 using Runewire.Orchestrator.Infrastructure.Preflight;
+using Runewire.Orchestrator.Infrastructure.Services;
 using System.Text.Json;
 
 namespace Runewire.Cli.Commands;
@@ -88,20 +90,11 @@ public static class RecipeValidateCommand
             return ExitCodeLoadOrOtherError;
         }
 
-        // Use the shared factory so CLI and other entry points all validate the same way.
-        // Saves me from chasing dumb mismatches where one accepts a recipe and the other rejects it.
-        IRecipeLoader loader = RecipeLoaderFactory.CreateForPath(recipeFile.FullName);
-        ITargetPreflightChecker preflight = new ProcessTargetPreflightChecker();
+        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new InjectionEngineFactory());
 
         try
         {
-            RunewireRecipe recipe = loader.LoadFromFile(recipeFile.FullName);
-
-            TargetPreflightResult preflightResult = preflight.Check(recipe);
-            if (!preflightResult.Success)
-            {
-                ThrowValidation(preflightResult.Errors);
-            }
+            RunewireRecipe recipe = service.Validate(recipeFile.FullName);
 
             if (outputJson)
             {

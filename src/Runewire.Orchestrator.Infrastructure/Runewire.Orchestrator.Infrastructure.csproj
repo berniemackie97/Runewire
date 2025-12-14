@@ -10,6 +10,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Runewire.Domain\Runewire.Domain.csproj" />
 		<ProjectReference Include="..\Runewire.Orchestrator\Runewire.Orchestrator.csproj" />
+		<ProjectReference Include="..\Runewire.Core.Infrastructure\Runewire.Core.Infrastructure.csproj" />
 	</ItemGroup>
 
 </Project>

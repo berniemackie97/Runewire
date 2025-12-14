@@ -6,6 +6,7 @@ using Runewire.Domain.Validation;
 using Runewire.Orchestrator.Orchestration;
 using Runewire.Orchestrator.Infrastructure.Preflight;
 using Runewire.Orchestrator.Infrastructure.InjectionEngines;
+using Runewire.Orchestrator.Infrastructure.Services;
 using System.Text.Json;
 
 namespace Runewire.Cli.Commands;
@@ -98,33 +99,19 @@ public static class RecipeRunCommand
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Shared loader factory so CLI / Studio / Server stay in sync.
-        IRecipeLoader loader = RecipeLoaderFactory.CreateForPath(recipeFile.FullName);
-
-        IInjectionEngine engine = CreateInjectionEngine(useNativeEngine);
-        ITargetPreflightChecker preflight = new ProcessTargetPreflightChecker();
-        RecipeExecutor executor = new(engine);
+        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new InjectionEngineFactory());
 
         try
         {
-            RunewireRecipe recipe = loader.LoadFromFile(recipeFile.FullName);
+            RecipeRunOutcome outcome = await service.RunAsync(recipeFile.FullName, useNativeEngine, cancellationToken).ConfigureAwait(false);
+            RunewireRecipe recipe = outcome.Recipe;
+            InjectionResult result = outcome.InjectionResult;
 
-            TargetPreflightResult preflightResult = preflight.Check(recipe);
-            if (!preflightResult.Success)
-            {
-                ThrowValidation(preflightResult.Errors);
-            }
-
-            if (useNativeEngine)
+            if (useNativeEngine && !outputJson)
             {
                 // EngineSelectionTests asserts this line. Keep it stable.
-                if (!outputJson)
-                {
-                    CliConsole.WriteDetail($"Using native injection engine for recipe '{recipe.Name}'.");
-                }
+                CliConsole.WriteDetail($"Using native injection engine for recipe '{recipe.Name}'.");
             }
-
-            InjectionResult result = await executor.ExecuteAsync(recipe, cancellationToken).ConfigureAwait(false);
 
             if (result.Success)
             {
@@ -134,7 +121,7 @@ public static class RecipeRunCommand
                     {
                         status = "succeeded",
                         recipeName = recipe.Name,
-                        engine = useNativeEngine ? "native" : "dry-run",
+                        engine = outcome.Engine,
                         result = new
                         {
                             success = result.Success,
@@ -158,7 +145,7 @@ public static class RecipeRunCommand
                 {
                     status = "failed",
                     recipeName = recipe.Name,
-                    engine = useNativeEngine ? "native" : "dry-run",
+                    engine = outcome.Engine,
                     result = new
                     {
                         success = result.Success,
