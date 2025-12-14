@@ -13,7 +13,10 @@ public sealed class InjectionTechniqueDescriptor
         string description,
         bool requiresKernelMode,
         IEnumerable<TechniquePlatform>? platforms,
-        IEnumerable<string>? requiredParameters = null)
+        IEnumerable<TechniqueParameter>? parameters = null,
+        bool implemented = false,
+        bool requiresDriver = false,
+        string? minNativeVersion = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -41,10 +44,10 @@ public sealed class InjectionTechniqueDescriptor
             throw new ArgumentException("At least one supported platform is required.", nameof(platforms));
         }
 
-        List<string> parameterList = requiredParameters?.ToList() ?? [];
-        if (parameterList.Any(string.IsNullOrWhiteSpace))
+        List<TechniqueParameter> parameterList = parameters?.ToList() ?? [];
+        if (parameterList.Any(p => p is null))
         {
-            throw new ArgumentException("Required parameters cannot be empty.", nameof(requiredParameters));
+            throw new ArgumentException("Technique parameters cannot contain null.", nameof(parameters));
         }
 
         Id = id;
@@ -54,7 +57,10 @@ public sealed class InjectionTechniqueDescriptor
         Description = description;
         RequiresKernelMode = requiresKernelMode;
         Platforms = platformList;
-        RequiredParameters = parameterList;
+        Parameters = parameterList;
+        Implemented = implemented;
+        RequiresDriver = requiresDriver;
+        MinNativeVersion = string.IsNullOrWhiteSpace(minNativeVersion) ? null : minNativeVersion;
     }
 
     /// <summary>
@@ -93,7 +99,22 @@ public sealed class InjectionTechniqueDescriptor
     public IReadOnlyList<TechniquePlatform> Platforms { get; }
 
     /// <summary>
-    /// Parameters that must be present in the recipe technique section.
+    /// Parameters used by this technique.
     /// </summary>
-    public IReadOnlyList<string> RequiredParameters { get; }
+    public IReadOnlyList<TechniqueParameter> Parameters { get; }
+
+    /// <summary>
+    /// True if the native engine supports this technique in this build.
+    /// </summary>
+    public bool Implemented { get; }
+
+    /// <summary>
+    /// True if this technique depends on a kernel driver or elevated component.
+    /// </summary>
+    public bool RequiresDriver { get; }
+
+    /// <summary>
+    /// Minimum native engine version required, if any.
+    /// </summary>
+    public string? MinNativeVersion { get; }
 }

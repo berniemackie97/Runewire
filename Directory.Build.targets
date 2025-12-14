@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <!-- Override to point MSBuild to a folder containing the native Runewire.Injector binary -->
+    <NativeInjectorDir Condition="'$(NativeInjectorDir)' == ''">$(MSBuildThisFileDirectory)native\bin\$(RuntimeIdentifier)</NativeInjectorDir>
+    <NativeInjectorBaseName>Runewire.Injector</NativeInjectorBaseName>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(NativeInjectorDir)')">
+    <NativeInjectorCandidate Include="$(NativeInjectorDir)\$(NativeInjectorBaseName).dll" Condition="Exists('$(NativeInjectorDir)\$(NativeInjectorBaseName).dll')" />
+    <NativeInjectorCandidate Include="$(NativeInjectorDir)\lib$(NativeInjectorBaseName).so" Condition="Exists('$(NativeInjectorDir)\lib$(NativeInjectorBaseName).so')" />
+    <NativeInjectorCandidate Include="$(NativeInjectorDir)\lib$(NativeInjectorBaseName).dylib" Condition="Exists('$(NativeInjectorDir)\lib$(NativeInjectorBaseName).dylib')" />
+  </ItemGroup>
+
+  <Target Name="CopyNativeInjector" AfterTargets="Build" Condition="'@(NativeInjectorCandidate)' != ''">
+    <Copy SourceFiles="@(NativeInjectorCandidate)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

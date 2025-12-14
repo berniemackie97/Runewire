@@ -17,7 +17,8 @@ public sealed record PreflightSummaryDto(
     string? ProcessArchitecture
 );
 public sealed record InjectionResultDto(bool Success, string? ErrorCode, string? ErrorMessage, DateTimeOffset StartedAtUtc, DateTimeOffset CompletedAtUtc);
-public sealed record TechniqueDto(string Name, string DisplayName, string Category, string Description, bool RequiresKernelMode, IReadOnlyList<string> Platforms, IReadOnlyList<string> RequiredParameters);
+public sealed record TechniqueParameterDto(string Name, string Description, bool Required, string DataType);
+public sealed record TechniqueDto(string Name, string DisplayName, string Category, string Description, bool RequiresKernelMode, bool RequiresDriver, string? MinNativeVersion, bool Implemented, IReadOnlyList<string> Platforms, IReadOnlyList<TechniqueParameterDto> Parameters);
 
 public sealed record ValidationResponseDto(
     string Status,
@@ -89,6 +90,10 @@ public static class JsonResponseFactory
     private static TechniqueDto MapTechnique(InjectionTechniqueDescriptor descriptor)
     {
         IReadOnlyList<string> platforms = descriptor.Platforms.Select(p => p.ToString()).ToArray();
-        return new TechniqueDto(descriptor.Name, descriptor.DisplayName, descriptor.Category, descriptor.Description, descriptor.RequiresKernelMode, platforms, descriptor.RequiredParameters);
+        IReadOnlyList<TechniqueParameterDto> parameters = descriptor.Parameters.Select(MapParameter).ToArray();
+        return new TechniqueDto(descriptor.Name, descriptor.DisplayName, descriptor.Category, descriptor.Description, descriptor.RequiresKernelMode, descriptor.RequiresDriver, descriptor.MinNativeVersion, descriptor.Implemented, platforms, parameters);
     }
+
+    private static TechniqueParameterDto MapParameter(TechniqueParameter parameter) =>
+        new(parameter.Name, parameter.Description, parameter.Required, parameter.DataType);
 }

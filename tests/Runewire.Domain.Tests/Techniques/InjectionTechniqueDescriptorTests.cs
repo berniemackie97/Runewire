@@ -23,7 +23,10 @@ public sealed class InjectionTechniqueDescriptorTests
             description: "Injects a DLL into a target process.",
             requiresKernelMode: false,
             platforms: new[] { TechniquePlatform.Windows },
-            requiredParameters: new[] { "paramA" });
+            parameters: new[] { new TechniqueParameter("paramA", "desc") },
+            implemented: true,
+            requiresDriver: false,
+            minNativeVersion: "1.0.0");
 
         // Assert
         Assert.Equal(id, descriptor.Id);
@@ -33,7 +36,10 @@ public sealed class InjectionTechniqueDescriptorTests
         Assert.Equal("Injects a DLL into a target process.", descriptor.Description);
         Assert.False(descriptor.RequiresKernelMode);
         Assert.Contains(TechniquePlatform.Windows, descriptor.Platforms);
-        Assert.Contains("paramA", descriptor.RequiredParameters);
+        Assert.Contains("paramA", descriptor.Parameters.Select(p => p.Name));
+        Assert.True(descriptor.Implemented);
+        Assert.False(descriptor.RequiresDriver);
+        Assert.Equal("1.0.0", descriptor.MinNativeVersion);
     }
 
     [Fact]
@@ -112,6 +118,6 @@ public sealed class InjectionTechniqueDescriptorTests
                 description: "Description",
                 requiresKernelMode: false,
                 platforms: new[] { TechniquePlatform.Windows },
-                requiredParameters: new[] { "ok", "  " }));
+                parameters: new TechniqueParameter[] { new("ok", "desc"), null! }));
     }
 }

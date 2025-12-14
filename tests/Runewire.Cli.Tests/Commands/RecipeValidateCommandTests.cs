@@ -235,4 +235,33 @@ public sealed class RecipeValidateCommandTests
         Assert.Equal(1, exitCode);
         Assert.Contains("TARGET_PID_NOT_FOUND", output);
     }
+
+    [Fact]
+    public async Task Validate_reports_driver_required_when_kernel_not_allowed()
+    {
+        // Arrange - use a technique that requires drivers (ProcessDoppelganging marked as such)
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string yaml = $"""
+            name: driver-required
+            target:
+              kind: processByName
+              processName: {Process.GetCurrentProcess().ProcessName}
+            technique:
+              name: ProcessDoppelganging
+            payload:
+              path: {payloadPath}
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        string recipePath = CLITestHarness.CreateTempRecipeFile("runewire-validate-driver-required", yaml);
+
+        // Act
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeValidateCommand.CommandName, "--json", recipePath);
+
+        // Assert
+        Assert.Equal(1, exitCode);
+        Assert.Contains("TECHNIQUE_DRIVER_REQUIRED", output);
+    }
 }

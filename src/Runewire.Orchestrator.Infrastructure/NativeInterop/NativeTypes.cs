@@ -33,6 +33,7 @@ internal struct RwInjectionRequest
     public IntPtr RecipeDescription;
     public RwTarget Target;
     public IntPtr TechniqueName;
+    public IntPtr TechniqueParametersJson;
     public IntPtr PayloadPath;
     public int AllowKernelDrivers;
     public int RequireInteractiveConsent;

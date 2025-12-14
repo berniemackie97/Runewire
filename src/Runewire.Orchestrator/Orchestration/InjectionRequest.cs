@@ -11,6 +11,7 @@ public sealed record InjectionRequest(
     string? RecipeDescription,
     RecipeTarget Target,
     string TechniqueName,
+    IReadOnlyDictionary<string, string>? TechniqueParameters,
     string PayloadPath,
     bool AllowKernelDrivers,
     bool RequireInteractiveConsent

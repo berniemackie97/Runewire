@@ -58,10 +58,13 @@ public static class TechniquesListCommand
         {
             string kernel = technique.RequiresKernelMode ? "requires kernel mode" : "user-mode";
             string platforms = string.Join(", ", technique.Platforms);
-            string requiredParams = technique.RequiredParameters.Count > 0
-                ? $"params: {string.Join(", ", technique.RequiredParameters)}"
+            string status = technique.Implemented ? "available" : "planned";
+            string driver = technique.RequiresDriver ? "driver required" : "no driver";
+            string version = string.IsNullOrWhiteSpace(technique.MinNativeVersion) ? "any version" : $"min native {technique.MinNativeVersion}";
+            string requiredParams = technique.Parameters.Count > 0
+                ? $"params: {string.Join(", ", technique.Parameters.Where(p => p.Required).Select(p => p.Name))}"
                 : "params: none";
-            CliConsole.WriteBullet($"{technique.Name} - {technique.DisplayName} [{technique.Category}] ({kernel}; platforms: {platforms}; {requiredParams})", ConsoleColor.Gray);
+            CliConsole.WriteBullet($"{technique.Name} - {technique.DisplayName} [{technique.Category}] ({kernel}; {driver}; {version}; platforms: {platforms}; {requiredParams}; status: {status})", ConsoleColor.Gray);
         }
 
         return 0;

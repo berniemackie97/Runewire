@@ -11,6 +11,8 @@ The platform is split into clear layers so it stays testable and easy to extend 
 - Preflight: Validation plus target/payload checks before any engine call. JSON output is available for automation.
 - Cross platform mindset: Windows first, with Linux and macOS on the roadmap. Native interop uses a narrow C ABI.
 - Tooling ready: CLI today, Studio/Server/Agent later. Shared services keep behavior consistent across hosts.
+- Native split: The .NET side looks for the native injector via env vars `RUNEWIRE_INJECTOR_PATH` (full path) or `RUNEWIRE_INJECTOR_DIR` (directory). This keeps the native repo/builds separate from the managed solution.
+  - MSBuild will copy a native injector binary into the output if it finds `Runewire.Injector.dll` / `libRunewire.Injector.(so|dylib)` under `native/bin/<rid>` or a custom `NativeInjectorDir`.
 
 ## Projects
 

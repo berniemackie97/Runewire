@@ -12,12 +12,13 @@ namespace Runewire.Orchestrator.Infrastructure.Services;
 /// CLI/Studio/Server should come through here to keep behavior consistent.
 /// </summary>
 public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider, ITargetPreflightChecker targetPreflightChecker,
-    IPayloadPreflightChecker payloadPreflightChecker, IInjectionEngineFactory engineFactory)
+    IPayloadPreflightChecker payloadPreflightChecker, IInjectionEngineFactory engineFactory, NativeVersionPreflightChecker? nativeVersionPreflightChecker = null)
 {
     private readonly IRecipeLoaderProvider _loaderProvider = loaderProvider ?? throw new ArgumentNullException(nameof(loaderProvider));
     private readonly ITargetPreflightChecker _targetPreflightChecker = targetPreflightChecker ?? throw new ArgumentNullException(nameof(targetPreflightChecker));
     private readonly IPayloadPreflightChecker _payloadPreflightChecker = payloadPreflightChecker ?? throw new ArgumentNullException(nameof(payloadPreflightChecker));
     private readonly IInjectionEngineFactory _engineFactory = engineFactory ?? throw new ArgumentNullException(nameof(engineFactory));
+    private readonly NativeVersionPreflightChecker? _nativeVersionPreflightChecker = nativeVersionPreflightChecker;
 
     /// <summary>
     /// Load and validate a recipe from the provided path (including preflight).
@@ -38,6 +39,12 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
         if (!payloadPreflight.Success)
         {
             ThrowValidation(payloadPreflight.Errors);
+        }
+
+        IReadOnlyList<RecipeValidationError> versionErrors = CheckNativeVersion(recipe.Technique.Name);
+        if (versionErrors.Count > 0)
+        {
+            ThrowValidation(versionErrors);
         }
 
         PreflightSummary preflight = PreflightSummaryBuilder.Build(targetPreflight, payloadPreflight);
@@ -65,5 +72,15 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
     {
         List<RecipeValidationError> list = errors?.ToList() ?? [];
         throw new RecipeLoadException("Recipe failed preflight.", list);
+    }
+
+    private IReadOnlyList<RecipeValidationError> CheckNativeVersion(string techniqueName)
+    {
+        if (_nativeVersionPreflightChecker is null)
+        {
+            return Array.Empty<RecipeValidationError>();
+        }
+
+        return _nativeVersionPreflightChecker.Check(techniqueName);
     }
 }

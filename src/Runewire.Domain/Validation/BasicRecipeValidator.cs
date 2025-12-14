@@ -78,14 +78,16 @@ public sealed class BasicRecipeValidator(IInjectionTechniqueRegistry? techniqueR
             errors.Add(new RecipeValidationError("TECHNIQUE_KERNEL_MODE_REQUIRED", $"Technique '{name}' requires kernel driver support."));
         }
 
-        if (descriptor.RequiredParameters.Count > 0)
+        if (descriptor.RequiresDriver && !recipe.AllowKernelDrivers)
         {
-            foreach (string requiredParam in descriptor.RequiredParameters)
+            errors.Add(new RecipeValidationError("TECHNIQUE_DRIVER_REQUIRED", $"Technique '{name}' requires kernel driver support."));
+        }
+
+        foreach (TechniqueParameter parameter in descriptor.Parameters.Where(p => p.Required))
+        {
+            if (!HasTechniqueParameter(recipe.Technique, parameter.Name))
             {
-                if (!HasTechniqueParameter(recipe.Technique, requiredParam))
-                {
-                    errors.Add(new RecipeValidationError("TECHNIQUE_PARAM_REQUIRED", $"Technique '{name}' requires parameter '{requiredParam}'."));
-                }
+                errors.Add(new RecipeValidationError("TECHNIQUE_PARAM_REQUIRED", $"Technique '{name}' requires parameter '{parameter.Name}'."));
             }
         }
     }

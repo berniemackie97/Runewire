@@ -199,7 +199,7 @@ public class RunewireRecipeValidationTests
             description: "Kernel-only test",
             requiresKernelMode: true,
             platforms: new[] { TechniquePlatform.Windows },
-            requiredParameters: Array.Empty<string>());
+            parameters: Array.Empty<TechniqueParameter>());
 
         FakeRegistry registry = new([kernelTechnique]);
 
@@ -232,7 +232,7 @@ public class RunewireRecipeValidationTests
             description: "Needs param",
             requiresKernelMode: false,
             platforms: new[] { TechniquePlatform.Windows },
-            requiredParameters: new[] { "dllPath" });
+            parameters: new[] { new TechniqueParameter("dllPath", "DLL path parameter") });
 
         FakeRegistry registry = new([technique]);
 
@@ -280,6 +280,37 @@ public class RunewireRecipeValidationTests
         Assert.Contains(result.Errors, e => e.Code == "TECHNIQUE_NAME_REQUIRED");
         Assert.Contains(result.Errors, e => e.Code == "PAYLOAD_PATH_REQUIRED");
         Assert.Contains(result.Errors, e => e.Code == "SAFETY_KERNEL_DRIVER_CONSENT_REQUIRED");
+    }
+
+    [Fact]
+    public void Technique_requiring_driver_fails_when_kernel_drivers_not_allowed()
+    {
+        InjectionTechniqueDescriptor technique = new(
+            InjectionTechniqueId.Unknown,
+            name: "NeedsDriver",
+            displayName: "Needs driver",
+            category: "Kernel",
+            description: "Driver dependent technique",
+            requiresKernelMode: false,
+            platforms: new[] { TechniquePlatform.Windows },
+            parameters: Array.Empty<TechniqueParameter>(),
+            implemented: true,
+            requiresDriver: true);
+
+        FakeRegistry registry = new([technique]);
+
+        RunewireRecipe recipe = CreateValidRecipe() with
+        {
+            AllowKernelDrivers = false,
+            Technique = new InjectionTechnique(technique.Name),
+        };
+
+        BasicRecipeValidator validator = new(registry);
+
+        RecipeValidationResult result = validator.Validate(recipe);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "TECHNIQUE_DRIVER_REQUIRED");
     }
 
     private sealed class FakeRegistry(IReadOnlyList<InjectionTechniqueDescriptor> techniques) : IInjectionTechniqueRegistry

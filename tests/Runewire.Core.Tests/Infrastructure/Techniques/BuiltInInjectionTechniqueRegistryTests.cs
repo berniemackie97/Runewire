@@ -28,6 +28,22 @@ public sealed class BuiltInInjectionTechniqueRegistryTests
     }
 
     [Fact]
+    public void Registry_contains_expected_techniques()
+    {
+        InjectionTechniqueDescriptor? crt = _registry.GetByName("CreateRemoteThread");
+        InjectionTechniqueDescriptor? apc = _registry.GetByName("QueueUserAPC");
+        InjectionTechniqueDescriptor? nt = _registry.GetByName("NtCreateThreadEx");
+        InjectionTechniqueDescriptor? manualMap = _registry.GetByName("ManualMap");
+        InjectionTechniqueDescriptor? shellcode = _registry.GetByName("Shellcode");
+
+        Assert.NotNull(crt);
+        Assert.NotNull(apc);
+        Assert.NotNull(nt);
+        Assert.NotNull(manualMap);
+        Assert.NotNull(shellcode);
+    }
+
+    [Fact]
     public void GetById_and_GetByName_return_same_descriptor_instance()
     {
         // Act
@@ -60,5 +76,38 @@ public sealed class BuiltInInjectionTechniqueRegistryTests
         Assert.Null(_registry.GetByName(string.Empty));
         Assert.Null(_registry.GetByName(null!));
         Assert.Null(_registry.GetByName("DoesNotExist"));
+    }
+
+    [Fact]
+    public void Registry_contains_core_technique_set_with_expected_platforms()
+    {
+        (string Name, TechniquePlatform Platform)[] expected =
+        [
+            ("CreateRemoteThread", TechniquePlatform.Windows),
+            ("QueueUserAPC", TechniquePlatform.Windows),
+            ("NtCreateThreadEx", TechniquePlatform.Windows),
+            ("ManualMap", TechniquePlatform.Windows),
+            ("Shellcode", TechniquePlatform.Windows),
+            ("ThreadHijack", TechniquePlatform.Windows),
+            ("EarlyBirdApc", TechniquePlatform.Windows),
+            ("ProcessHollowing", TechniquePlatform.Windows),
+            ("ProcessDoppelganging", TechniquePlatform.Windows),
+            ("ProcessHerpaderping", TechniquePlatform.Windows),
+            ("ModuleStomping", TechniquePlatform.Windows),
+            ("SharedSectionMap", TechniquePlatform.Windows),
+            ("ReflectiveDll", TechniquePlatform.Windows),
+            ("ClrHost", TechniquePlatform.Windows),
+            ("PtraceInject", TechniquePlatform.Linux),
+            ("MemfdShellcode", TechniquePlatform.Linux),
+            ("MachThreadInject", TechniquePlatform.MacOS),
+        ];
+
+        foreach ((string name, TechniquePlatform platform) in expected)
+        {
+            InjectionTechniqueDescriptor? descriptor = _registry.GetByName(name);
+            Assert.NotNull(descriptor);
+            Assert.Contains(platform, descriptor!.Platforms);
+            Assert.True(descriptor.Implemented);
+        }
     }
 }

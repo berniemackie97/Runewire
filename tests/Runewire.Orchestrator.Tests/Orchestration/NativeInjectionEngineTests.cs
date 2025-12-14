@@ -34,6 +34,7 @@ public class NativeInjectionEngineTests
             RecipeDescription: "Demo via native engine",
             Target: recipeTarget,
             TechniqueName: "CreateRemoteThread",
+            TechniqueParameters: new Dictionary<string, string> { { "mode", "safe" } },
             PayloadPath: @"C:\lab\payloads\demo.dll",
             AllowKernelDrivers: false,
             RequireInteractiveConsent: true
@@ -48,6 +49,7 @@ public class NativeInjectionEngineTests
         Assert.Equal(RwTargetKind.ProcessName, fakeInvoker.TargetKind);
         Assert.Equal("explorer.exe", fakeInvoker.TargetProcessName);
         Assert.Equal("CreateRemoteThread", fakeInvoker.TechniqueName);
+        Assert.Contains("\"mode\":\"safe\"", fakeInvoker.TechniqueParametersJson);
         Assert.Equal(@"C:\lab\payloads\demo.dll", fakeInvoker.PayloadPath);
         Assert.Equal(0, fakeInvoker.AllowKernelDrivers);
         Assert.Equal(1, fakeInvoker.RequireInteractiveConsent);
@@ -78,6 +80,7 @@ public class NativeInjectionEngineTests
             RecipeDescription: null,
             Target: RecipeTarget.Self(),
             TechniqueName: "CreateRemoteThread",
+            TechniqueParameters: null,
             PayloadPath: @"C:\lab\payloads\demo.dll",
             AllowKernelDrivers: false,
             RequireInteractiveConsent: false
@@ -104,6 +107,7 @@ public class NativeInjectionEngineTests
         public uint TargetPid { get; private set; }
         public string? TargetProcessName { get; private set; }
         public string? TechniqueName { get; private set; }
+        public string? TechniqueParametersJson { get; private set; }
         public string? PayloadPath { get; private set; }
         public int AllowKernelDrivers { get; private set; }
         public int RequireInteractiveConsent { get; private set; }
@@ -118,6 +122,7 @@ public class NativeInjectionEngineTests
             TargetProcessName = PtrToStringOrNull(request.Target.ProcessName);
 
             TechniqueName = PtrToStringOrNull(request.TechniqueName);
+            TechniqueParametersJson = PtrToStringOrNull(request.TechniqueParametersJson);
             PayloadPath = PtrToStringOrNull(request.PayloadPath);
 
             AllowKernelDrivers = request.AllowKernelDrivers;

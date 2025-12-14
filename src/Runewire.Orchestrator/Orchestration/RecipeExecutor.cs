@@ -31,6 +31,7 @@ public sealed class RecipeExecutor(IInjectionEngine injectionEngine)
             recipe.Description,
             recipe.Target,
             recipe.Technique.Name,
+            recipe.Technique.Parameters,
             recipe.PayloadPath,
             recipe.AllowKernelDrivers,
             recipe.RequireInteractiveConsent

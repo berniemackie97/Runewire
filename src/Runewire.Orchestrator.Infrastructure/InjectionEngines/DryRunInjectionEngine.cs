@@ -32,6 +32,13 @@ public sealed class DryRunInjectionEngine(TextWriter? output = null) : IInjectio
 
         _output.WriteLine($"  Target:   {DescribeTarget(request)}");
         _output.WriteLine($"  Technique:{request.TechniqueName}");
+        if (request.TechniqueParameters is { Count: > 0 })
+        {
+            foreach ((string key, string value) in request.TechniqueParameters)
+            {
+                _output.WriteLine($"    Param: {key} = {value}");
+            }
+        }
         _output.WriteLine($"  Payload:  {request.PayloadPath}");
         _output.WriteLine($"  Kernel:   {(request.AllowKernelDrivers ? "allowed" : "not allowed")}");
         _output.WriteLine($"  Consent:  {(request.RequireInteractiveConsent ? "required" : "not required")}");

@@ -113,7 +113,7 @@ public static class RecipeRunCommand
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new PayloadPreflightChecker(), new InjectionEngineFactory());
+        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new PayloadPreflightChecker(), new InjectionEngineFactory(), new NativeVersionPreflightChecker(new FileNativeVersionProvider(), new Core.Infrastructure.Techniques.BuiltInInjectionTechniqueRegistry()));
         InjectionEngineOptions? engineOptions = (!useNativeEngine && outputJson) ? new InjectionEngineOptions(TextWriter.Null) : null;
 
         try

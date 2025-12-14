@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using Runewire.Domain.Recipes;
 using Runewire.Orchestrator.Infrastructure.NativeInterop;
 using Runewire.Orchestrator.Orchestration;
@@ -90,6 +91,9 @@ public sealed class NativeInjectionEngine : IInjectionEngine
         }
 
         RwTarget target = MapTarget(request.Target, Alloc);
+        string? parametersJson = request.TechniqueParameters is { Count: > 0 }
+            ? JsonSerializer.Serialize(request.TechniqueParameters, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
+            : null;
 
         return new RwInjectionRequest
         {
@@ -97,6 +101,7 @@ public sealed class NativeInjectionEngine : IInjectionEngine
             RecipeDescription = Alloc(request.RecipeDescription),
             Target = target,
             TechniqueName = Alloc(request.TechniqueName),
+            TechniqueParametersJson = Alloc(parametersJson),
             PayloadPath = Alloc(request.PayloadPath),
             AllowKernelDrivers = request.AllowKernelDrivers ? 1 : 0,
             RequireInteractiveConsent = request.RequireInteractiveConsent ? 1 : 0,

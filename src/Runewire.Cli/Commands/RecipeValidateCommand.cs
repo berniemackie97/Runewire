@@ -96,7 +96,7 @@ public static class RecipeValidateCommand
             return ExitCodeLoadOrOtherError;
         }
 
-        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new PayloadPreflightChecker(), new InjectionEngineFactory());
+        RecipeExecutionService service = new(new DefaultRecipeLoaderProvider(), new ProcessTargetPreflightChecker(), new PayloadPreflightChecker(), new InjectionEngineFactory(), new NativeVersionPreflightChecker(new FileNativeVersionProvider(), new Core.Infrastructure.Techniques.BuiltInInjectionTechniqueRegistry()));
 
         try
         {
