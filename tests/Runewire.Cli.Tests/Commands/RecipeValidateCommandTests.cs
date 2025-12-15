@@ -1,5 +1,6 @@
 using Runewire.Cli.Commands;
 using System.Diagnostics;
+using System.IO.MemoryMappedFiles;
 
 namespace Runewire.Cli.Tests.Commands;
 
@@ -289,5 +290,70 @@ public sealed class RecipeValidateCommandTests
 
         Assert.Equal(1, exitCode);
         Assert.Contains("TARGET_LAUNCH_PATH_REQUIRED", output);
+    }
+
+    [Fact]
+    public async Task Validate_wait_condition_missing_value_returns_error()
+    {
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string yaml = $"""
+            name: wait-missing-value
+            target:
+              kind: processByName
+              processName: {Process.GetCurrentProcess().ProcessName}
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: {payloadPath}
+            steps:
+              - kind: wait
+                condition:
+                  kind: shmvalue
+                  value: ''
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        string recipePath = CLITestHarness.CreateTempRecipeFile("runewire-validate-wait-missing-value", yaml);
+
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeValidateCommand.CommandName, recipePath);
+
+        Assert.Equal(1, exitCode);
+        Assert.Contains("STEP_WAIT_CONDITION_VALUE_REQUIRED", output);
+    }
+
+    [Fact]
+    public async Task Validate_wait_condition_shared_memory_value_passes()
+    {
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string mapName = $"runewire-cli-test-{Guid.NewGuid():N}";
+        using var mmf = MemoryMappedFile.CreateNew(mapName, 256);
+
+        string yaml = $"""
+            name: wait-shmvalue
+            target:
+              kind: processByName
+              processName: {Process.GetCurrentProcess().ProcessName}
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: {payloadPath}
+            steps:
+              - kind: wait
+                condition:
+                  kind: shmvalue
+                  value: {mapName}=ready
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        string recipePath = CLITestHarness.CreateTempRecipeFile("runewire-validate-wait-shmvalue", yaml);
+
+        (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeValidateCommand.CommandName, recipePath);
+
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Recipe is valid", output);
     }
 }

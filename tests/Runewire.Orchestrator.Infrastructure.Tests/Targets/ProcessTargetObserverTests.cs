@@ -131,6 +131,31 @@ public sealed class ProcessTargetObserverTests
     }
 
     [Fact]
+    public async Task WaitForAsync_succeeds_for_shared_memory_value()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        string mapName = $"runewire-map-{Guid.NewGuid():N}";
+        using var mmf = MemoryMappedFile.CreateNew(mapName, 1024);
+        using (MemoryMappedViewStream stream = mmf.CreateViewStream())
+        using (StreamWriter writer = new(stream, Encoding.UTF8, leaveOpen: true))
+        {
+            writer.Write("ready");
+            writer.Flush();
+        }
+
+        ProcessTargetObserver observer = new();
+        WaitCondition condition = new(WaitConditionKind.SharedMemoryValueEquals, $"{mapName}=ready", 2000);
+
+        WaitResult result = await observer.WaitForAsync(RecipeTarget.Self(), condition);
+
+        Assert.True(result.Success);
+    }
+
+    [Fact]
     public async Task WaitForAsync_succeeds_for_tcp_port()
     {
         if (!OperatingSystem.IsWindows())

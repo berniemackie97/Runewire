@@ -13,7 +13,8 @@ namespace Runewire.Orchestrator.Infrastructure.Services;
 /// CLI/Studio/Server should come through here to keep behavior consistent.
 /// </summary>
 public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider, ITargetPreflightChecker targetPreflightChecker,
-    IPayloadPreflightChecker payloadPreflightChecker, IInjectionEngineFactory engineFactory, NativeVersionPreflightChecker? nativeVersionPreflightChecker = null, ITargetController? targetController = null, ITargetObserver? targetObserver = null)
+    IPayloadPreflightChecker payloadPreflightChecker, IInjectionEngineFactory engineFactory, NativeVersionPreflightChecker? nativeVersionPreflightChecker = null,
+    ITargetController? targetController = null, ITargetObserver? targetObserver = null)
 {
     private readonly IRecipeLoaderProvider _loaderProvider = loaderProvider ?? throw new ArgumentNullException(nameof(loaderProvider));
     private readonly ITargetPreflightChecker _targetPreflightChecker = targetPreflightChecker ?? throw new ArgumentNullException(nameof(targetPreflightChecker));
@@ -24,7 +25,7 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
     private readonly ITargetObserver _targetObserver = targetObserver ?? CreateDefaultObserver();
 
     /// <summary>
-    /// Load and validate a recipe from the provided path (including preflight).
+    /// Load and validate a recipe from the provided path.
     /// Throws RecipeLoadException on validation/preflight failures.
     /// </summary>
     public RecipeValidationOutcome Validate(string path)

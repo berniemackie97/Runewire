@@ -37,6 +37,8 @@ public sealed class TechniquesListCommandTests
         Assert.Contains("\"implemented\"", output);
         Assert.Contains("\"parameters\"", output);
         Assert.Contains("\"requiresDriver\"", output);
+        Assert.Contains("\"name\": \"HttpRedirect\"", output);
+        Assert.Contains("\"name\": \"LdPreloadLaunch\"", output);
     }
 
     [Fact]

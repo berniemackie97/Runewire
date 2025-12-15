@@ -52,6 +52,10 @@ dotnet run --project src/Runewire.Cli -- preflight demo-recipe.yaml --json
 dotnet run --project src/Runewire.Cli -- techniques
 ```
 
+### Wait conditions (recipes)
+
+Steps can wait on conditions like module load, file/pipe/shared memory presence, shared memory value match, registry value match (Windows), process exit/handle ready, child process appearance, TCP/HTTP reachability, window class/title (Windows), environment variable match, file content match, and named IPC (event/mutex/semaphore/named pipe). Unsupported conditions on a platform return clear errors.
+
 ## Architecture rules
 
 - Domain stays pure: no file IO, no console, no P/Invoke, no DI containers.

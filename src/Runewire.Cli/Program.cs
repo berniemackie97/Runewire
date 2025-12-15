@@ -7,7 +7,6 @@ public static class Program
 {
     /// <summary>
     /// CLI entry point.
-    /// Keep this boring. Build commands, parse args, invoke.
     /// Returning Task<int> keeps everything async without weird sync blocking.
     /// </summary>
     /// <param name="args">Raw command line args.</param>
@@ -28,7 +27,6 @@ public static class Program
     {
         RootCommand root = new("Runewire process injection lab CLI")
         {
-            // Core recipe commands. This is the main workflow right now.
             RecipeValidateCommand.Create(),
             RecipeRunCommand.Create(),
             TechniquesListCommand.Create(),

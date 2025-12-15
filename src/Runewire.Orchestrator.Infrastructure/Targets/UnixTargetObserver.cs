@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.IO;
+using System.Text;
 using Runewire.Domain.Recipes;
 using Runewire.Orchestrator.Orchestration;
 
@@ -21,6 +23,7 @@ public sealed class UnixTargetObserver : ITargetObserver
             WaitConditionKind.FileExists => WaitForFileAsync(condition, cancellationToken),
             WaitConditionKind.ProcessExited => WaitForProcessExitAsync(target, condition, cancellationToken),
             WaitConditionKind.NamedPipeAvailable => WaitForPipeAsync(condition, cancellationToken),
+            WaitConditionKind.SharedMemoryValueEquals => WaitForSharedMemoryValueAsync(condition, cancellationToken),
             _ => Task.FromResult(WaitResult.Failed("WAIT_CONDITION_UNSUPPORTED_PLATFORM", $"Wait condition '{condition.Kind}' is not supported on this platform.")),
         };
     }
@@ -73,6 +76,56 @@ public sealed class UnixTargetObserver : ITargetObserver
         }
 
         return WaitResult.Failed("WAIT_CONDITION_TIMEOUT", $"Timed out waiting for pipe '{condition.Value}'.");
+    }
+
+    private static async Task<WaitResult> WaitForSharedMemoryValueAsync(WaitCondition condition, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(condition.Value))
+        {
+            return WaitResult.Failed("WAIT_CONDITION_VALUE_REQUIRED", "Shared memory condition is required (Name=Value).");
+        }
+
+        int equalsIndex = condition.Value.IndexOf('=');
+        if (equalsIndex <= 0 || equalsIndex >= condition.Value.Length - 1)
+        {
+            return WaitResult.Failed("WAIT_CONDITION_VALUE_REQUIRED", "Shared memory condition format is invalid.");
+        }
+
+        string name = condition.Value[..equalsIndex];
+        string expected = condition.Value[(equalsIndex + 1)..];
+
+        TimeSpan timeout = GetTimeout(condition);
+        DateTimeOffset deadline = DateTimeOffset.UtcNow + timeout;
+
+        while (DateTimeOffset.UtcNow <= deadline)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                string path = name.StartsWith("/", StringComparison.Ordinal) ? name : $"/dev/shm/{name}";
+                if (File.Exists(path))
+                {
+                    string content = await File.ReadAllTextAsync(path, Encoding.UTF8, cancellationToken).ConfigureAwait(false);
+                    if (content.Contains(expected, StringComparison.Ordinal))
+                    {
+                        return WaitResult.Succeeded();
+                    }
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                // not yet present
+            }
+            catch
+            {
+                // ignore other errors
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(300), cancellationToken).ConfigureAwait(false);
+        }
+
+        return WaitResult.Failed("WAIT_CONDITION_TIMEOUT", $"Timed out waiting for shared memory '{name}' to contain expected value.");
     }
 
     private static async Task<WaitResult> WaitForProcessExitAsync(RecipeTarget target, WaitCondition condition, CancellationToken cancellationToken)

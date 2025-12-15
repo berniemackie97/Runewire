@@ -23,4 +23,5 @@ public enum WaitConditionKind
     ServiceState = 15,
     EnvironmentVariableEquals = 16,
     FileContentContains = 17,
+    SharedMemoryValueEquals = 18,
 }

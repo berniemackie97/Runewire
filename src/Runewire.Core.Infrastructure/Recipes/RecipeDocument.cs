@@ -2,7 +2,6 @@ namespace Runewire.Core.Infrastructure.Recipes;
 
 /// <summary>
 /// Serialized recipe shape as it comes off disk (YAML).
-/// This is just the raw document DTO, not the domain model.
 /// Loader maps this into RunewireRecipe after validation.
 /// </summary>
 internal sealed class RecipeDocument

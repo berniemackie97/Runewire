@@ -181,6 +181,7 @@ internal static class RecipeDocumentMapper
             "env" => WaitConditionKind.EnvironmentVariableEquals,
             "environment" => WaitConditionKind.EnvironmentVariableEquals,
             "filecontent" => WaitConditionKind.FileContentContains,
+            "shmvalue" => WaitConditionKind.SharedMemoryValueEquals,
             _ => throw new RecipeLoadException($"Unknown wait condition kind '{rawKind}'."),
         };
     }

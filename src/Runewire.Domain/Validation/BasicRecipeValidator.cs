@@ -276,6 +276,7 @@ public sealed class BasicRecipeValidator(IInjectionTechniqueRegistry? techniqueR
             case WaitConditionKind.ServiceState:
             case WaitConditionKind.EnvironmentVariableEquals:
             case WaitConditionKind.FileContentContains:
+            case WaitConditionKind.SharedMemoryValueEquals:
                 break;
             default:
                 errors.Add(new RecipeValidationError("STEP_WAIT_CONDITION_UNKNOWN", $"Step {index} has unknown wait condition '{condition.Kind}'."));

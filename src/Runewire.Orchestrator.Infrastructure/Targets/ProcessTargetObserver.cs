@@ -10,11 +10,14 @@ using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.Versioning;
+using System.ServiceProcess;
 using Runewire.Domain.Recipes;
 using Runewire.Orchestrator.Orchestration;
 
 namespace Runewire.Orchestrator.Infrastructure.Targets;
 
+[SupportedOSPlatform("windows")]
 /// <summary>
 /// Observes process state (Windows) to satisfy wait conditions like module load.
 /// </summary>
@@ -61,6 +64,7 @@ public sealed class ProcessTargetObserver : ITargetObserver
             WaitConditionKind.ServiceState => WaitForServiceStateAsync(condition, cancellationToken),
             WaitConditionKind.EnvironmentVariableEquals => WaitForEnvironmentAsync(condition, cancellationToken),
             WaitConditionKind.FileContentContains => WaitForFileContentAsync(condition, cancellationToken),
+            WaitConditionKind.SharedMemoryValueEquals => WaitForSharedMemoryValueAsync(condition, cancellationToken),
             _ => Task.FromResult(WaitResult.Failed("WAIT_CONDITION_UNKNOWN", $"Wait condition '{condition.Kind}' is not supported.")),
         };
     }
@@ -413,6 +417,11 @@ public sealed class ProcessTargetObserver : ITargetObserver
             return WaitResult.Failed("WAIT_CONDITION_VALUE_REQUIRED", "Registry condition format is invalid.");
         }
 
+        if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(valueName))
+        {
+            return WaitResult.Failed("WAIT_CONDITION_VALUE_REQUIRED", "Registry condition format is invalid.");
+        }
+
         TimeSpan timeout = GetTimeout(condition);
         DateTimeOffset deadline = DateTimeOffset.UtcNow + timeout;
 
@@ -442,6 +451,57 @@ public sealed class ProcessTargetObserver : ITargetObserver
         }
 
         return WaitResult.Failed("WAIT_CONDITION_TIMEOUT", $"Timed out waiting for registry value '{condition.Value}'.");
+    }
+
+    private static async Task<WaitResult> WaitForSharedMemoryValueAsync(WaitCondition condition, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(condition.Value))
+        {
+            return WaitResult.Failed("WAIT_CONDITION_VALUE_REQUIRED", "Shared memory condition is required (Name=Value).");
+        }
+
+        int equalsIndex = condition.Value.IndexOf('=');
+        if (equalsIndex <= 0 || equalsIndex >= condition.Value.Length - 1)
+        {
+            return WaitResult.Failed("WAIT_CONDITION_VALUE_REQUIRED", "Shared memory condition format is invalid.");
+        }
+
+        string name = condition.Value[..equalsIndex];
+        string expected = condition.Value[(equalsIndex + 1)..];
+
+        TimeSpan timeout = GetTimeout(condition);
+        DateTimeOffset deadline = DateTimeOffset.UtcNow + timeout;
+
+        while (DateTimeOffset.UtcNow <= deadline)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                using (MemoryMappedFile mmf = MemoryMappedFile.OpenExisting(name))
+                using (MemoryMappedViewStream stream = mmf.CreateViewStream())
+                using (StreamReader reader = new(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 512, leaveOpen: false))
+                {
+                    string content = await reader.ReadToEndAsync().ConfigureAwait(false);
+                    if (content.Contains(expected, StringComparison.Ordinal))
+                    {
+                        return WaitResult.Succeeded();
+                    }
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                // not yet present
+            }
+            catch
+            {
+                // ignore other errors
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(300), cancellationToken).ConfigureAwait(false);
+        }
+
+        return WaitResult.Failed("WAIT_CONDITION_TIMEOUT", $"Timed out waiting for shared memory '{name}' to contain expected value.");
     }
 
     private static async Task<WaitResult> WaitForChildProcessAsync(int parentPid, WaitCondition condition, CancellationToken cancellationToken)
@@ -537,9 +597,49 @@ public sealed class ProcessTargetObserver : ITargetObserver
 
     private static async Task<WaitResult> WaitForServiceStateAsync(WaitCondition condition, CancellationToken cancellationToken)
     {
-        _ = condition;
-        _ = cancellationToken;
-        return WaitResult.Failed("WAIT_CONDITION_UNSUPPORTED_PLATFORM", "Service state wait is not supported in this build.");
+        if (!OperatingSystem.IsWindows())
+        {
+            return WaitResult.Failed("WAIT_CONDITION_UNSUPPORTED_PLATFORM", "Service state wait is only supported on Windows.");
+        }
+
+        if (string.IsNullOrWhiteSpace(condition.Value))
+        {
+            return WaitResult.Failed("WAIT_CONDITION_VALUE_REQUIRED", "Service condition is required (ServiceName=State).");
+        }
+
+        if (!TryParseServiceCondition(condition.Value, out string? serviceName, out string? desiredState))
+        {
+            return WaitResult.Failed("WAIT_CONDITION_VALUE_REQUIRED", "Service condition format is invalid.");
+        }
+
+        TimeSpan timeout = GetTimeout(condition);
+        DateTimeOffset deadline = DateTimeOffset.UtcNow + timeout;
+        string serviceNameNonNull = serviceName!;
+        string desiredStateNonNull = desiredState!;
+        ServiceControllerStatus targetStatus = ParseServiceState(desiredStateNonNull);
+
+        while (DateTimeOffset.UtcNow <= deadline)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                using ServiceController controller = new(serviceNameNonNull);
+                controller.Refresh();
+                if (controller.Status == targetStatus)
+                {
+                    return WaitResult.Succeeded();
+                }
+            }
+            catch
+            {
+                // ignore and retry
+            }
+
+            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).ConfigureAwait(false);
+        }
+
+        return WaitResult.Failed("WAIT_CONDITION_TIMEOUT", $"Timed out waiting for service '{serviceNameNonNull}' to reach state '{desiredStateNonNull}'.");
     }
 
     private static async Task<WaitResult> WaitForEnvironmentAsync(WaitCondition condition, CancellationToken cancellationToken)
@@ -749,6 +849,32 @@ public sealed class ProcessTargetObserver : ITargetObserver
         };
 
         return !string.IsNullOrWhiteSpace(valueName);
+    }
+
+    private static bool TryParseServiceCondition(string value, out string? serviceName, out string? desiredState)
+    {
+        int equalsIndex = value.IndexOf('=');
+        if (equalsIndex <= 0 || equalsIndex >= value.Length - 1)
+        {
+            serviceName = null;
+            desiredState = null;
+            return false;
+        }
+
+        serviceName = value[..equalsIndex];
+        desiredState = value[(equalsIndex + 1)..];
+        return !string.IsNullOrWhiteSpace(serviceName) && !string.IsNullOrWhiteSpace(desiredState);
+    }
+
+    private static ServiceControllerStatus ParseServiceState(string state)
+    {
+        return state.ToLowerInvariant() switch
+        {
+            "running" => ServiceControllerStatus.Running,
+            "stopped" => ServiceControllerStatus.Stopped,
+            "paused" => ServiceControllerStatus.Paused,
+            _ => ServiceControllerStatus.Running
+        };
     }
 
     [Flags]
