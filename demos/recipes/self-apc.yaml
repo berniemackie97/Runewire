@@ -1,0 +1,12 @@
+name: runewire-apc-self
+description: QueueUserAPC into current process and thread.
+target:
+  kind: self
+technique:
+  name: QueueUserAPC
+  parameters: {}
+payload:
+  path: ../payloads/shellcode.bin
+safety:
+  requireInteractiveConsent: false
+  allowKernelDrivers: false

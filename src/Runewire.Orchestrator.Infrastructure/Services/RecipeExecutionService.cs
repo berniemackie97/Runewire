@@ -31,7 +31,7 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
     public RecipeValidationOutcome Validate(string path)
     {
         IRecipeLoader loader = _loaderProvider.Create(path);
-        RunewireRecipe recipe = loader.LoadFromFile(path);
+        RunewireRecipe recipe = NormalizePaths(path, loader.LoadFromFile(path));
 
         TargetPreflightResult targetPreflight = _targetPreflightChecker.Check(recipe);
         if (!targetPreflight.Success)
@@ -111,5 +111,39 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
         return OperatingSystem.IsWindows()
             ? new ProcessTargetObserver()
             : new UnixTargetObserver();
+    }
+
+    private static RunewireRecipe NormalizePaths(string recipePath, RunewireRecipe recipe)
+    {
+        ArgumentNullException.ThrowIfNull(recipe);
+
+        string recipeDirectory = Path.GetDirectoryName(recipePath) ?? Directory.GetCurrentDirectory();
+
+        string Normalize(string path) =>
+            string.IsNullOrWhiteSpace(path) || Path.IsPathRooted(path)
+                ? path
+                : Path.GetFullPath(Path.Combine(recipeDirectory, path));
+
+        string normalizedPayload = Normalize(recipe.PayloadPath);
+
+        IReadOnlyList<RecipeStep>? normalizedSteps = recipe.Steps;
+        if (recipe.Steps is not null && recipe.Steps.Count > 0)
+        {
+            List<RecipeStep> steps = new(recipe.Steps.Count);
+            foreach (RecipeStep step in recipe.Steps)
+            {
+                string? stepPayload = step.PayloadPath;
+                if (!string.IsNullOrWhiteSpace(stepPayload))
+                {
+                    stepPayload = Normalize(stepPayload);
+                }
+
+                RecipeStep normalized = step with { PayloadPath = stepPayload };
+                steps.Add(normalized);
+            }
+            normalizedSteps = steps;
+        }
+
+        return recipe with { PayloadPath = normalizedPayload, Steps = normalizedSteps };
     }
 }

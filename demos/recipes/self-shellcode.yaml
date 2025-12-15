@@ -1,0 +1,12 @@
+name: runewire-shellcode-self
+description: Shellcode injection into self using native engine.
+target:
+  kind: self
+technique:
+  name: Shellcode
+  parameters: {}
+payload:
+  path: ../payloads/shellcode.bin
+safety:
+  requireInteractiveConsent: false
+  allowKernelDrivers: false

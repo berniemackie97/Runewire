@@ -35,6 +35,13 @@ public sealed class NativeInjectionEngine : IInjectionEngine
 
         DateTimeOffset started = DateTimeOffset.UtcNow;
 
+        // If we're using the real native invoker, ensure the DLL is present before marshalling anything.
+        if (_invoker is NativeInjectorInvoker && !NativeLibraryAvailable(out string? missingMessage))
+        {
+            DateTimeOffset completed = DateTimeOffset.UtcNow;
+            return Task.FromResult(InjectionResult.Failed("NATIVE_LIBRARY_MISSING", missingMessage, started, completed));
+        }
+
         // Track unmanaged allocations so I can free everything in finally.
         List<IntPtr> allocations = new(capacity: 6);
         RwInjectionRequest nativeRequest;
@@ -202,5 +209,18 @@ public sealed class NativeInjectionEngine : IInjectionEngine
         {
             return fallback;
         }
+    }
+
+    private static bool NativeLibraryAvailable(out string? message)
+    {
+        string? path = NativeMethods.GetPreferredLibraryPath();
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            message = $"Native injector not found. Expected at: {path ?? "unknown"}";
+            return false;
+        }
+
+        message = null;
+        return true;
     }
 }

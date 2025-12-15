@@ -17,4 +17,10 @@
 		<PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.1" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(OS)' == 'Windows_NT' and Exists('..\..\native\Runewire.Injector\build\Runewire.Injector.dll')">
+		<Content Include="..\..\native\Runewire.Injector\build\Runewire.Injector.dll" Link="Runewire.Injector.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
 </Project>

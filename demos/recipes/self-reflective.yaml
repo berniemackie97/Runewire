@@ -1,0 +1,12 @@
+name: runewire-reflective-self
+description: Reflective DLL load into self.
+target:
+  kind: self
+technique:
+  name: ReflectiveDll
+  parameters: {}
+payload:
+  path: C:\Windows\System32\kernel32.dll
+safety:
+  requireInteractiveConsent: false
+  allowKernelDrivers: false

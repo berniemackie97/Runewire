@@ -56,11 +56,23 @@ public static class RecipeRunCommand
             Description = "Emit machine-readable JSON output instead of human-readable text.",
         };
 
+        Option<FileInfo?> injectorPathOption = new("--injector-path")
+        {
+            Description = "Explicit path to the native Runewire.Injector binary (overrides environment).",
+        };
+
+        Option<DirectoryInfo?> injectorDirOption = new("--injector-dir")
+        {
+            Description = "Directory containing the native Runewire.Injector binary (used if --injector-path is not provided).",
+        };
+
         Command command = new(name: CommandName, description: "Execute a Runewire recipe file (dry-run injection engine by default).")
         {
             recipeArgument,
             nativeOption,
             jsonOption,
+            injectorPathOption,
+            injectorDirOption,
         };
 
         command.SetAction((parseResult, cancellationToken) =>
@@ -68,6 +80,8 @@ public static class RecipeRunCommand
             FileInfo? recipeFile = parseResult.GetValue(recipeArgument);
             bool useNativeEngine = parseResult.GetValue(nativeOption);
             bool outputJson = parseResult.GetValue(jsonOption);
+            FileInfo? injectorPath = parseResult.GetValue(injectorPathOption);
+            DirectoryInfo? injectorDir = parseResult.GetValue(injectorDirOption);
 
             if (recipeFile is null)
             {
@@ -82,7 +96,7 @@ public static class RecipeRunCommand
                 return Task.FromResult(ExitCodeLoadError);
             }
 
-            return HandleAsync(recipeFile, useNativeEngine, outputJson, cancellationToken);
+            return HandleAsync(recipeFile, useNativeEngine, outputJson, injectorPath, injectorDir, cancellationToken);
         });
 
         return command;
@@ -97,7 +111,7 @@ public static class RecipeRunCommand
     /// 2 = load/structural error (IO, YAML parse)
     /// 3 = injection failed (engine reported failure or unexpected error)
     /// </summary>
-    private static async Task<int> HandleAsync(FileInfo recipeFile, bool useNativeEngine, bool outputJson, CancellationToken cancellationToken)
+    private static async Task<int> HandleAsync(FileInfo recipeFile, bool useNativeEngine, bool outputJson, FileInfo? injectorPath, DirectoryInfo? injectorDir, CancellationToken cancellationToken)
     {
         if (!recipeFile.Exists)
         {
@@ -110,6 +124,15 @@ public static class RecipeRunCommand
                 CliConsole.WriteError($"Recipe file not found: {recipeFile.FullName}");
             }
             return ExitCodeLoadError;
+        }
+
+        if (injectorPath is not null)
+        {
+            Environment.SetEnvironmentVariable("RUNEWIRE_INJECTOR_PATH", injectorPath.FullName);
+        }
+        else if (injectorDir is not null)
+        {
+            Environment.SetEnvironmentVariable("RUNEWIRE_INJECTOR_DIR", injectorDir.FullName);
         }
 
         cancellationToken.ThrowIfCancellationRequested();

@@ -71,6 +71,25 @@ public sealed class YamlRecipeLoader(IRecipeValidator validator) : IYamlRecipeLo
             throw new RecipeLoadException($"Failed to read recipe file '{path}'.", null, ex);
         }
 
-        return LoadFromString(yaml);
+        RecipeDocument? document;
+
+        try
+        {
+            document = _deserializer.Deserialize<RecipeDocument>(yaml);
+        }
+        catch (Exception ex)
+        {
+            throw new RecipeLoadException("Failed to parse recipe YAML.", null, ex);
+        }
+
+        if (document is null)
+        {
+            throw new RecipeLoadException("Recipe YAML content is empty or invalid.");
+        }
+
+        string? baseDir = Path.GetDirectoryName(Path.GetFullPath(path));
+        RunewireRecipe recipe = RecipeDocumentMapper.MapToDomain(document, baseDir);
+        RecipeValidationPipeline.Validate(recipe, _validator);
+        return recipe;
     }
 }

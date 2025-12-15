@@ -8,7 +8,7 @@ namespace Runewire.Core.Infrastructure.Recipes;
 /// </summary>
 internal static class RecipeDocumentMapper
 {
-    public static RunewireRecipe MapToDomain(RecipeDocument doc)
+    public static RunewireRecipe MapToDomain(RecipeDocument doc, string? baseDirectory = null)
     {
         if (doc.Target is null)
         {
@@ -42,11 +42,11 @@ internal static class RecipeDocumentMapper
             _ => throw new RecipeLoadException($"Unsupported target kind '{doc.Target.Kind}'."), // should be unreachable due to ParseTargetKind
         };
 
-        string payloadPath = doc.Payload.Path ?? string.Empty;
+        string payloadPath = NormalizePath(doc.Payload.Path, baseDirectory);
 
         RecipeSafetyDocument safety = doc.Safety ?? new RecipeSafetyDocument();
 
-        IReadOnlyList<RecipeStep>? steps = MapSteps(doc.Steps);
+        IReadOnlyList<RecipeStep>? steps = MapSteps(doc.Steps, baseDirectory);
 
         return new RunewireRecipe(name, description, target, technique, payloadPath, safety.RequireInteractiveConsent, safety.AllowKernelDrivers, steps);
     }
@@ -85,7 +85,7 @@ internal static class RecipeDocumentMapper
         };
     }
 
-    private static IReadOnlyList<RecipeStep>? MapSteps(List<RecipeStepDocument>? stepsDoc)
+    private static IReadOnlyList<RecipeStep>? MapSteps(List<RecipeStepDocument>? stepsDoc, string? baseDirectory)
     {
         if (stepsDoc is null || stepsDoc.Count == 0)
         {
@@ -100,7 +100,7 @@ internal static class RecipeDocumentMapper
             {
                 TechniqueName = doc.TechniqueName,
                 TechniqueParameters = doc.TechniqueParameters,
-                PayloadPath = doc.PayloadPath,
+                PayloadPath = NormalizePath(doc.PayloadPath, baseDirectory),
                 WaitMilliseconds = doc.WaitMilliseconds,
                 Condition = MapCondition(doc.Condition)
             };
@@ -184,5 +184,20 @@ internal static class RecipeDocumentMapper
             "shmvalue" => WaitConditionKind.SharedMemoryValueEquals,
             _ => throw new RecipeLoadException($"Unknown wait condition kind '{rawKind}'."),
         };
+    }
+
+    private static string NormalizePath(string? path, string? baseDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return string.Empty;
+        }
+
+        if (Path.IsPathRooted(path) || string.IsNullOrWhiteSpace(baseDirectory))
+        {
+            return path;
+        }
+
+        return Path.GetFullPath(Path.Combine(baseDirectory, path));
     }
 }

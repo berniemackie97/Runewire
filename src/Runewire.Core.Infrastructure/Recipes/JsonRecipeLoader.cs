@@ -66,6 +66,25 @@ public sealed class JsonRecipeLoader(IRecipeValidator validator) : IJsonRecipeLo
             throw new RecipeLoadException($"Failed to read recipe file '{path}'.", null, ex);
         }
 
-        return LoadFromString(json);
+        RecipeDocument? document;
+
+        try
+        {
+            document = JsonSerializer.Deserialize<RecipeDocument>(json, SerializerOptions);
+        }
+        catch (Exception ex)
+        {
+            throw new RecipeLoadException("Failed to parse recipe JSON.", null, ex);
+        }
+
+        if (document is null)
+        {
+            throw new RecipeLoadException("Recipe JSON content is empty or invalid.");
+        }
+
+        string? baseDir = Path.GetDirectoryName(Path.GetFullPath(path));
+        RunewireRecipe recipe = RecipeDocumentMapper.MapToDomain(document, baseDir);
+        RecipeValidationPipeline.Validate(recipe, _validator);
+        return recipe;
     }
 }

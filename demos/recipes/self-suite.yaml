@@ -1,0 +1,33 @@
+name: runewire-self-suite
+description: Demo recipe running multiple techniques against self.
+target:
+  kind: self
+technique:
+  name: Shellcode
+  parameters: {}
+payload:
+  path: ../payloads/shellcode.bin
+safety:
+  requireInteractiveConsent: false
+  allowKernelDrivers: false
+steps:
+  - kind: injectTechnique
+    techniqueName: Shellcode
+    payloadPath: ../payloads/shellcode.bin
+    techniqueParameters: {}
+  - kind: injectTechnique
+    techniqueName: QueueUserAPC
+    payloadPath: ../payloads/shellcode.bin
+    techniqueParameters: {}
+  - kind: injectTechnique
+    techniqueName: CreateRemoteThread
+    payloadPath: C:\Windows\System32\kernel32.dll
+    techniqueParameters: {}
+  - kind: injectTechnique
+    techniqueName: ReflectiveDll
+    payloadPath: C:\Windows\System32\kernel32.dll
+    techniqueParameters: {}
+  - kind: injectTechnique
+    techniqueName: ManualMap
+    payloadPath: C:\Windows\System32\kernel32.dll
+    techniqueParameters: {}
