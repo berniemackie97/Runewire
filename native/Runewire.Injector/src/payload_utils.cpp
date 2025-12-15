@@ -1,8 +1,8 @@
 #include "payload_utils.h"
 
+#include <filesystem>
 #include <fstream>
 #include <vector>
-#include <windows.h>
 
 bool payload_exists(const char* path)
 {
@@ -10,8 +10,10 @@ bool payload_exists(const char* path)
     {
         return false;
     }
-    const DWORD attributes = ::GetFileAttributesA(path);
-    return attributes != INVALID_FILE_ATTRIBUTES && !(attributes & FILE_ATTRIBUTE_DIRECTORY);
+
+    std::error_code ec;
+    std::filesystem::path p(path);
+    return std::filesystem::is_regular_file(p, ec);
 }
 
 bool read_payload_file(const char* path, std::vector<unsigned char>& buffer)

@@ -1,6 +1,8 @@
 #include "process_utils.h"
 #include "technique_dispatch.h"
 
+#ifdef _WIN32
+
 HANDLE open_process_for_injection(const rw_injection_request* req, DWORD desired_access, dispatch_outcome& failure)
 {
     if (!req)
@@ -33,10 +35,16 @@ HANDLE open_process_for_injection(const rw_injection_request* req, DWORD desired
         return process;
     }
 
-    if (req->target.kind != RW_TARGET_PROCESS_ID)
-    {
-        failure = { false, "TARGET_KIND_UNSUPPORTED", "Technique supports only self or process id targets." };
-        return nullptr;
-    }
+    failure = { false, "TARGET_KIND_UNSUPPORTED", "Technique supports only self or process id targets." };
     return nullptr;
 }
+
+#else
+
+HANDLE open_process_for_injection(const rw_injection_request*, DWORD, dispatch_outcome& failure)
+{
+    failure = { false, "TECHNIQUE_UNSUPPORTED_PLATFORM", "Native injector is not implemented on this platform." };
+    return nullptr;
+}
+
+#endif

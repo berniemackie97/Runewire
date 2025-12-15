@@ -1,5 +1,7 @@
 #include "thread_utils.h"
 
+#ifdef _WIN32
+
 HANDLE open_thread_for_injection(DWORD thread_id, dispatch_outcome& failure)
 {
     if (thread_id == 0)
@@ -17,3 +19,13 @@ HANDLE open_thread_for_injection(DWORD thread_id, dispatch_outcome& failure)
 
     return thread;
 }
+
+#else
+
+HANDLE open_thread_for_injection(DWORD, dispatch_outcome& failure)
+{
+    failure = { false, "TECHNIQUE_UNSUPPORTED_PLATFORM", "Native injector is not implemented on this platform." };
+    return nullptr;
+}
+
+#endif

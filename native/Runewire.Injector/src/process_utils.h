@@ -1,7 +1,13 @@
 #pragma once
 
 #include "../include/runewire_injector.h"
+
+#ifdef _WIN32
 #include <windows.h>
+#else
+using HANDLE = void*;
+using DWORD = unsigned long;
+#endif
 
 struct dispatch_outcome;
 

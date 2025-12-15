@@ -6,6 +6,30 @@
 #include <cstring>
 #include <string>
 #include <vector>
+
+#ifndef _WIN32
+
+dispatch_outcome handle_create_remote_thread(const rw_injection_request*, const parsed_params&)
+{
+    return { false, "TECHNIQUE_UNSUPPORTED_PLATFORM", "Technique not implemented on this platform." };
+}
+
+dispatch_outcome handle_queue_user_apc(const rw_injection_request*, const parsed_params&)
+{
+    return { false, "TECHNIQUE_UNSUPPORTED_PLATFORM", "Technique not implemented on this platform." };
+}
+
+dispatch_outcome handle_nt_create_thread_ex(const rw_injection_request*, const parsed_params&)
+{
+    return { false, "TECHNIQUE_UNSUPPORTED_PLATFORM", "Technique not implemented on this platform." };
+}
+
+dispatch_outcome handle_thread_hijack(const rw_injection_request*, const parsed_params&)
+{
+    return { false, "TECHNIQUE_UNSUPPORTED_PLATFORM", "Technique not implemented on this platform." };
+}
+
+#else
 dispatch_outcome handle_create_remote_thread(const rw_injection_request* req, const parsed_params&)
 {
     dispatch_outcome failure{};
@@ -371,3 +395,4 @@ dispatch_outcome handle_thread_hijack(const rw_injection_request* req, const par
     }
     return { true, nullptr, nullptr }; // Stub: reachability only.
 }
+#endif

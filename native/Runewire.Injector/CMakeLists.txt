@@ -3,10 +3,6 @@ project(RunewireInjector LANGUAGES C CXX)
 
 include(CTest)
 
-if(NOT WIN32)
-  message(FATAL_ERROR "Runewire.Injector currently only supports Windows builds.")
-endif()
-
 # Inherit C++ standard from parent, but enforce if someone builds standalone.
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -38,8 +34,9 @@ set_target_properties(Runewire.Injector PROPERTIES
 
 if(BUILD_TESTING)
     enable_testing()
-endif()
-
-if(BUILD_TESTING)
-    add_subdirectory(tests)
+    if(WIN32)
+        add_subdirectory(tests)
+    else()
+        message(STATUS "Native injector tests are skipped on this platform (Windows-only tests).")
+    endif()
 endif()
