@@ -51,6 +51,32 @@ namespace
         return path;
     }
 
+    std::string get_process_name()
+    {
+        char path[MAX_PATH] = {};
+        ::GetModuleFileNameA(nullptr, path, MAX_PATH);
+        const char* name = std::strrchr(path, '\\');
+        if (name)
+        {
+            return std::string(name + 1);
+        }
+        return std::string(path);
+    }
+
+    std::string strip_exe_suffix(std::string value)
+    {
+        if (value.size() > 4)
+        {
+            const char* suffix = ".exe";
+            const size_t offset = value.size() - 4;
+            if (_stricmp(value.c_str() + offset, suffix) == 0)
+            {
+                value.resize(offset);
+            }
+        }
+        return value;
+    }
+
     rw_injection_request make_base_request()
     {
         rw_injection_request req{};
@@ -122,6 +148,26 @@ int main()
         status = call_inject(crt_self, crt_self_result);
         expect_true(status == 0, "CreateRemoteThread current pid should succeed");
         expect_true(crt_self_result.success != 0, "CreateRemoteThread current pid success flag");
+
+        // CreateRemoteThread with process name (with and without .exe) should succeed.
+        const std::string process_name = get_process_name();
+        const std::string process_stem = strip_exe_suffix(process_name);
+
+        rw_injection_request crt_name = crt_self;
+        crt_name.target.kind = RW_TARGET_PROCESS_NAME;
+        crt_name.target.process_name = process_name.c_str();
+        rw_injection_result crt_name_result{};
+        status = call_inject(crt_name, crt_name_result);
+        expect_true(status == 0, "CreateRemoteThread process name should succeed");
+        expect_true(crt_name_result.success != 0, "CreateRemoteThread process name success flag");
+
+        rw_injection_request crt_stem = crt_self;
+        crt_stem.target.kind = RW_TARGET_PROCESS_NAME;
+        crt_stem.target.process_name = process_stem.c_str();
+        rw_injection_result crt_stem_result{};
+        status = call_inject(crt_stem, crt_stem_result);
+        expect_true(status == 0, "CreateRemoteThread process name without exe should succeed");
+        expect_true(crt_stem_result.success != 0, "CreateRemoteThread process name without exe success flag");
 
         // CreateRemoteThread with missing DLL should fail.
         rw_injection_request crt_missing = crt_self;

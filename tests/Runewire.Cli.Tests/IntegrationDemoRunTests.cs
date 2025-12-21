@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace Runewire.Cli.Tests;
 
 public class IntegrationDemoRunTests

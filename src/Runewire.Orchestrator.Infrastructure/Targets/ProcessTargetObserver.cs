@@ -1,15 +1,11 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Net.Sockets;
 using System.IO.MemoryMappedFiles;
 using Microsoft.Win32;
 using Microsoft.Win32.SafeHandles;
-using System.Net;
-using System.Net.Http;
 using System.Runtime.Versioning;
 using System.ServiceProcess;
 using Runewire.Domain.Recipes;

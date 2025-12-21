@@ -30,6 +30,18 @@ dispatch_outcome handle_thread_hijack(const rw_injection_request*, const parsed_
 }
 
 #else
+namespace
+{
+    std::optional<int> get_thread_id(const parsed_params& params)
+    {
+        if (const auto thread_id = params.get_int("threadId"))
+        {
+            return thread_id;
+        }
+        return params.get_int("targetThreadId");
+    }
+}
+
 dispatch_outcome handle_create_remote_thread(const rw_injection_request* req, const parsed_params&)
 {
     dispatch_outcome failure{};
@@ -189,7 +201,7 @@ dispatch_outcome handle_queue_user_apc(const rw_injection_request* req, const pa
     }
 
     DWORD target_thread_id = 0;
-    if (const auto thread_id = params.get_int("threadId"))
+    if (const auto thread_id = get_thread_id(params))
     {
         if (*thread_id <= 0)
         {
@@ -375,7 +387,7 @@ dispatch_outcome handle_thread_hijack(const rw_injection_request* req, const par
     }
 
     // Optional threadId parameter must be positive if present.
-    if (const auto thread_id = params.get_int("threadId"))
+    if (const auto thread_id = get_thread_id(params))
     {
         HANDLE thread = open_thread_for_injection(static_cast<DWORD>(*thread_id), failure);
         if (!thread)

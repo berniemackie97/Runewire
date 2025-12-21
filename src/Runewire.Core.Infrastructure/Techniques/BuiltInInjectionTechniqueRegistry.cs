@@ -1,4 +1,3 @@
-using System;
 using Runewire.Domain.Techniques;
 using System.Collections.Immutable;
 
@@ -47,7 +46,8 @@ public sealed class BuiltInInjectionTechniqueRegistry : IInjectionTechniqueRegis
                 platforms: new[] { TechniquePlatform.Windows },
                 parameters:
                 [
-                    new TechniqueParameter("targetThreadId", "Target thread id (optional).", required: false, dataType: "int")
+                    new TechniqueParameter("targetThreadId", "Target thread id (optional).", required: false, dataType: "int"),
+                    new TechniqueParameter("timeoutMs", "Optional APC wait timeout in milliseconds.", required: false, dataType: "int")
                 ],
                 implemented: true
             ),

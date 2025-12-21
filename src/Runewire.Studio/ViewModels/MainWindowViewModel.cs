@@ -1,4 +1,4 @@
-﻿namespace Runewire.Studio.ViewModels
+namespace Runewire.Studio.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {

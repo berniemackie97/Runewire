@@ -3,6 +3,95 @@
 
 #ifdef _WIN32
 
+#include <cctype>
+#include <string>
+#include <tlhelp32.h>
+
+namespace
+{
+    std::string normalize_process_name(const char* name)
+    {
+        std::string value = name ? name : "";
+        for (char& ch : value)
+        {
+            ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+        }
+
+        const char* exe_suffix = ".exe";
+        if (value.size() > 4 && value.compare(value.size() - 4, 4, exe_suffix) == 0)
+        {
+            value.resize(value.size() - 4);
+        }
+
+        return value;
+    }
+
+    std::string entry_process_name(const PROCESSENTRY32& entry)
+    {
+#ifdef UNICODE
+        const wchar_t* wide = entry.szExeFile;
+        if (!wide || wide[0] == L'\0')
+        {
+            return {};
+        }
+
+        const int needed = ::WideCharToMultiByte(CP_UTF8, 0, wide, -1, nullptr, 0, nullptr, nullptr);
+        if (needed <= 1)
+        {
+            return {};
+        }
+
+        std::string result(static_cast<size_t>(needed - 1), '\0');
+        ::WideCharToMultiByte(CP_UTF8, 0, wide, -1, result.data(), needed, nullptr, nullptr);
+        return result;
+#else
+        return std::string(entry.szExeFile);
+#endif
+    }
+
+    bool try_find_process_id_by_name(const char* name, DWORD& pid)
+    {
+        if (!name || name[0] == '\0')
+        {
+            return false;
+        }
+
+        std::string desired = normalize_process_name(name);
+        if (desired.empty())
+        {
+            return false;
+        }
+
+        HANDLE snapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if (snapshot == INVALID_HANDLE_VALUE)
+        {
+            return false;
+        }
+
+        PROCESSENTRY32 entry{};
+        entry.dwSize = sizeof(entry);
+
+        if (!::Process32First(snapshot, &entry))
+        {
+            ::CloseHandle(snapshot);
+            return false;
+        }
+
+        do
+        {
+            if (normalize_process_name(entry_process_name(entry).c_str()) == desired)
+            {
+                pid = entry.th32ProcessID;
+                ::CloseHandle(snapshot);
+                return true;
+            }
+        } while (::Process32Next(snapshot, &entry));
+
+        ::CloseHandle(snapshot);
+        return false;
+    }
+}
+
 HANDLE open_process_for_injection(const rw_injection_request* req, DWORD desired_access, dispatch_outcome& failure)
 {
     if (!req)
@@ -35,7 +124,31 @@ HANDLE open_process_for_injection(const rw_injection_request* req, DWORD desired
         return process;
     }
 
-    failure = { false, "TARGET_KIND_UNSUPPORTED", "Technique supports only self or process id targets." };
+    if (req->target.kind == RW_TARGET_PROCESS_NAME)
+    {
+        DWORD pid = 0;
+        if (!try_find_process_id_by_name(req->target.process_name, pid) || pid == 0)
+        {
+            failure = { false, "TARGET_NAME_NOT_FOUND", "Target process name was not found." };
+            return nullptr;
+        }
+
+        if (pid == ::GetCurrentProcessId())
+        {
+            return ::GetCurrentProcess();
+        }
+
+        HANDLE process = ::OpenProcess(desired_access, FALSE, pid);
+        if (!process)
+        {
+            failure = { false, "TARGET_OPEN_FAILED", "Failed to open target process." };
+            return nullptr;
+        }
+
+        return process;
+    }
+
+    failure = { false, "TARGET_KIND_UNSUPPORTED", "Technique supports only self, process id, or process name targets." };
     return nullptr;
 }
 

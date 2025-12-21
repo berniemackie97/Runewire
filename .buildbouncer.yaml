@@ -1,0 +1,25 @@
+version: 1
+checks:
+    - name: tests
+      run: dotnet test -c Release
+    - name: format
+      run: dotnet format --verify-no-changes
+    - name: ci:build-test-coverage-native:.net-build-test-coverage:restore
+      run: dotnet restore
+    - name: ci:build-test-coverage-native:.net-build-test-coverage:build-release
+      run: dotnet build --configuration Release --no-restore
+    - name: ci:build-test-coverage-native:.net-build-test-coverage:test-with-coverage
+      run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
+    - name: ci:build-test-coverage-native:native-injector-build-cmake-ninja:configure-cmake-debug
+      run: cmake -S native -B build/native -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
+    - name: ci:build-test-coverage-native:native-injector-build-cmake-ninja:build-runewire.injector-debug
+      run: cmake --build build/native --config Debug
+    - name: ci:build-test-coverage-native:native-injector-build-cmake-ninja:run-native-tests
+      run: ctest --test-dir build/native --output-on-failure
+insults:
+    mode: snarky
+    file: assets/insults/default.json
+    locale: en
+banter:
+    file: assets/banter/default.json
+    locale: en
