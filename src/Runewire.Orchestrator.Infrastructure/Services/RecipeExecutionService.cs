@@ -14,7 +14,7 @@ namespace Runewire.Orchestrator.Infrastructure.Services;
 /// </summary>
 public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider, ITargetPreflightChecker targetPreflightChecker,
     IPayloadPreflightChecker payloadPreflightChecker, IInjectionEngineFactory engineFactory, NativeVersionPreflightChecker? nativeVersionPreflightChecker = null,
-    ITargetController? targetController = null, ITargetObserver? targetObserver = null)
+    ITargetController? targetController = null, ITargetObserver? targetObserver = null, ITargetLauncher? targetLauncher = null)
 {
     private readonly IRecipeLoaderProvider _loaderProvider = loaderProvider ?? throw new ArgumentNullException(nameof(loaderProvider));
     private readonly ITargetPreflightChecker _targetPreflightChecker = targetPreflightChecker ?? throw new ArgumentNullException(nameof(targetPreflightChecker));
@@ -23,6 +23,7 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
     private readonly NativeVersionPreflightChecker? _nativeVersionPreflightChecker = nativeVersionPreflightChecker;
     private readonly ITargetController _targetController = targetController ?? new ProcessTargetController();
     private readonly ITargetObserver _targetObserver = targetObserver ?? CreateDefaultObserver();
+    private readonly ITargetLauncher _targetLauncher = targetLauncher ?? new ProcessTargetLauncher();
 
     /// <summary>
     /// Load and validate a recipe from the provided path.
@@ -65,10 +66,26 @@ public sealed class RecipeExecutionService(IRecipeLoaderProvider loaderProvider,
         RecipeValidationOutcome validation = Validate(path);
         RunewireRecipe recipe = validation.Recipe;
 
+        RunewireRecipe executionRecipe = recipe;
+        if (useNativeEngine && recipe.Target.Kind == RecipeTargetKind.LaunchProcess)
+        {
+            TargetLaunchResult launch = await _targetLauncher.LaunchAsync(recipe.Target, cancellationToken).ConfigureAwait(false);
+            if (!launch.Success || launch.ProcessId is null)
+            {
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                string errorCode = launch.ErrorCode ?? "TARGET_LAUNCH_FAILED";
+                string errorMessage = launch.ErrorMessage ?? "Failed to launch target process.";
+                InjectionResult failure = InjectionResult.Failed(errorCode, errorMessage, now, now);
+                return new RecipeRunOutcome(recipe, failure, Array.Empty<RecipeStepResult>(), useNativeEngine ? "native" : "dry-run", validation.Preflight);
+            }
+
+            executionRecipe = recipe with { Target = RecipeTarget.ForProcessId(launch.ProcessId.Value) };
+        }
+
         IInjectionEngine engine = _engineFactory.Create(useNativeEngine, engineOptions);
         RecipeExecutor executor = new(engine, _targetController, _targetObserver);
 
-        RecipeExecutionResult executionResult = await executor.ExecuteAsync(recipe, cancellationToken).ConfigureAwait(false);
+        RecipeExecutionResult executionResult = await executor.ExecuteAsync(executionRecipe, cancellationToken).ConfigureAwait(false);
         return new RecipeRunOutcome(recipe, executionResult.OverallResult, executionResult.StepResults, useNativeEngine ? "native" : "dry-run", validation.Preflight);
     }
 

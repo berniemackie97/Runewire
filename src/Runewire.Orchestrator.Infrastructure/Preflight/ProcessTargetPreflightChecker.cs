@@ -20,7 +20,7 @@ public sealed class ProcessTargetPreflightChecker : ITargetPreflightChecker
                 RecipeTargetKind.Self => TargetPreflightResult.Ok(),
                 RecipeTargetKind.ProcessById => CheckProcessById(recipe.Target.ProcessId),
                 RecipeTargetKind.ProcessByName => CheckProcessByName(recipe.Target.ProcessName),
-                RecipeTargetKind.LaunchProcess => CheckLaunchPath(recipe.Target.LaunchPath),
+                RecipeTargetKind.LaunchProcess => CheckLaunchTarget(recipe.Target),
                 _ => TargetPreflightResult.Failed(new RecipeValidationError("TARGET_KIND_UNKNOWN", $"Unknown target kind '{recipe.Target.Kind}'.")),
             };
         }
@@ -30,16 +30,26 @@ public sealed class ProcessTargetPreflightChecker : ITargetPreflightChecker
         }
     }
 
-    private static TargetPreflightResult CheckLaunchPath(string? path)
+    private static TargetPreflightResult CheckLaunchTarget(RecipeTarget target)
     {
-        if (string.IsNullOrWhiteSpace(path))
+        if (string.IsNullOrWhiteSpace(target.LaunchPath))
         {
             return TargetPreflightResult.Failed(new RecipeValidationError("TARGET_LAUNCH_PATH_REQUIRED", "Launch path is required."));
         }
 
-        if (!File.Exists(path))
+        if (!File.Exists(target.LaunchPath))
         {
-            return TargetPreflightResult.Failed(new RecipeValidationError("TARGET_LAUNCH_PATH_NOT_FOUND", $"Launch path not found: {path}"));
+            return TargetPreflightResult.Failed(new RecipeValidationError("TARGET_LAUNCH_PATH_NOT_FOUND", $"Launch path not found: {target.LaunchPath}"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(target.LaunchWorkingDirectory) && !Directory.Exists(target.LaunchWorkingDirectory))
+        {
+            return TargetPreflightResult.Failed(new RecipeValidationError("TARGET_LAUNCH_WORKDIR_NOT_FOUND", $"Launch working directory not found: {target.LaunchWorkingDirectory}"));
+        }
+
+        if (target.LaunchStartSuspended && !OperatingSystem.IsWindows())
+        {
+            return TargetPreflightResult.Failed(new RecipeValidationError("TARGET_LAUNCH_SUSPEND_UNSUPPORTED", "Start suspended is only supported on Windows."));
         }
 
         return TargetPreflightResult.Ok();

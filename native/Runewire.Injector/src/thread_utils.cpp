@@ -10,7 +10,7 @@ HANDLE open_thread_for_injection(DWORD thread_id, dispatch_outcome& failure)
         return nullptr;
     }
 
-    HANDLE thread = ::OpenThread(THREAD_SET_CONTEXT | THREAD_SUSPEND_RESUME | THREAD_QUERY_INFORMATION, FALSE, thread_id);
+    HANDLE thread = ::OpenThread(THREAD_GET_CONTEXT | THREAD_SET_CONTEXT | THREAD_SUSPEND_RESUME | THREAD_QUERY_INFORMATION, FALSE, thread_id);
     if (!thread)
     {
         failure = { false, "THREAD_OPEN_FAILED", "Failed to open target thread." };

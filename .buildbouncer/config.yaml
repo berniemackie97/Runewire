@@ -4,6 +4,8 @@ checks:
       run: dotnet test -c Release
     - name: format
       run: dotnet format --verify-no-changes
+    - name: ci:build-test-coverage-native:.net-build-test-coverage:setup-.net
+      run: dotnet --version
     - name: ci:build-test-coverage-native:.net-build-test-coverage:restore
       run: dotnet restore
     - name: ci:build-test-coverage-native:.net-build-test-coverage:build-release
@@ -18,8 +20,8 @@ checks:
       run: ctest --test-dir build/native --output-on-failure
 insults:
     mode: snarky
-    file: assets/insults/default.json
+    file: .buildbouncer/assets/insults/default.json
     locale: en
 banter:
-    file: assets/banter/default.json
+    file: .buildbouncer/assets/banter/default.json
     locale: en

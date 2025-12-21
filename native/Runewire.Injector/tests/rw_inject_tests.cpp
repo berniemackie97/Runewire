@@ -28,6 +28,7 @@ namespace
         }
     }
 
+
     int call_inject(const rw_injection_request& req, rw_injection_result& result)
     {
         return rw_inject(&req, &result);
@@ -75,6 +76,16 @@ namespace
             }
         }
         return value;
+    }
+
+    DWORD WINAPI wait_thread_proc(LPVOID param)
+    {
+        HANDLE evt = static_cast<HANDLE>(param);
+        if (evt)
+        {
+            ::WaitForSingleObject(evt, INFINITE);
+        }
+        return 0;
     }
 
     rw_injection_request make_base_request()
@@ -250,6 +261,7 @@ int main()
         nt_self.technique_name = "NtCreateThreadEx";
         nt_self.target.kind = RW_TARGET_PROCESS_ID;
         nt_self.target.pid = static_cast<unsigned long>(::GetCurrentProcessId());
+        nt_self.payload_path = kernel32_path.c_str();
         rw_injection_result nt_self_result{};
         status = call_inject(nt_self, nt_self_result);
         expect_true(status == 0, "NtCreateThreadEx current pid should succeed");
@@ -263,11 +275,29 @@ int main()
         expect_true(status != 0, "NtCreateThreadEx bogus pid should fail");
         expect_equal(nt_fail_result.error_code, "TARGET_OPEN_FAILED", "NtCreateThreadEx bogus pid error");
 
-        // ThreadHijack with current PID should succeed (reachability).
+        // NtCreateThreadEx with negative creationFlags should fail.
+        rw_injection_request nt_flags = nt_self;
+        nt_flags.technique_parameters_json = R"({"creationFlags":-1})";
+        rw_injection_result nt_flags_result{};
+        status = call_inject(nt_flags, nt_flags_result);
+        expect_true(status != 0, "NtCreateThreadEx negative creationFlags should fail");
+        expect_equal(nt_flags_result.error_code, "TECHNIQUE_PARAM_INVALID", "NtCreateThreadEx invalid creationFlags");
+
+        HANDLE hijack_event = ::CreateEventA(nullptr, TRUE, FALSE, nullptr);
+        expect_true(hijack_event != nullptr, "ThreadHijack event should be created");
+        DWORD hijack_thread_id = 0;
+        HANDLE hijack_thread = ::CreateThread(nullptr, 0, wait_thread_proc, hijack_event, 0, &hijack_thread_id);
+        expect_true(hijack_thread != nullptr, "ThreadHijack thread should be created");
+
+        // ThreadHijack with current PID should succeed.
         rw_injection_request hijack_self = make_base_request();
         hijack_self.technique_name = "ThreadHijack";
         hijack_self.target.kind = RW_TARGET_PROCESS_ID;
         hijack_self.target.pid = static_cast<unsigned long>(::GetCurrentProcessId());
+        hijack_self.payload_path = kernel32_path.c_str();
+        char hijack_params[64];
+        std::snprintf(hijack_params, sizeof(hijack_params), R"({"threadId":%lu})", hijack_thread_id);
+        hijack_self.technique_parameters_json = hijack_params;
         rw_injection_result hijack_self_result{};
         status = call_inject(hijack_self, hijack_self_result);
         expect_true(status == 0, "ThreadHijack current pid should succeed");
@@ -289,6 +319,11 @@ int main()
         expect_true(status != 0, "ThreadHijack bogus pid should fail");
         expect_equal(hijack_fail_result.error_code, "TARGET_OPEN_FAILED", "ThreadHijack bogus pid error");
 
+        ::SetEvent(hijack_event);
+        ::WaitForSingleObject(hijack_thread, 2000);
+        ::CloseHandle(hijack_thread);
+        ::CloseHandle(hijack_event);
+
         // ManualMap missing payloadPath param should fall back to request path and fail when not found.
         rw_injection_request mm_missing = make_base_request();
         mm_missing.technique_name = "ManualMap";
@@ -300,19 +335,16 @@ int main()
         expect_true(status != 0, "ManualMap missing payloadPath should fail");
         expect_equal(mm_missing_result.error_code, "PAYLOAD_NOT_FOUND", "ManualMap missing payloadPath uses request payload");
 
-        // ManualMap with payloadPath should succeed (stub reachability) when file exists.
-        const std::string temp_path = make_temp_file("runewire_temp_dummy.bin", nullptr, 0);
+        // ManualMap with payloadPath should fail without reflective export.
+        const unsigned char dummy_bytes[] = { 0x00 };
+        const std::string temp_path = make_temp_file("runewire_temp_dummy.bin", dummy_bytes, sizeof(dummy_bytes));
         rw_injection_request mm_ok = mm_missing;
         mm_ok.payload_path = temp_path.c_str();
         mm_ok.technique_parameters_json = "{}";
         rw_injection_result mm_ok_result{};
         status = call_inject(mm_ok, mm_ok_result);
-        if (status != 0 && mm_ok_result.error_code)
-        {
-            std::printf("ManualMap error: %s\n", mm_ok_result.error_code);
-        }
-        expect_true(status == 0, "ManualMap with payloadPath should succeed");
-        expect_true(mm_ok_result.success != 0, "ManualMap success flag");
+        expect_true(status != 0, "ManualMap without reflective export should fail");
+        expect_equal(mm_ok_result.error_code, "REFLECTIVE_EXPORT_NOT_FOUND", "ManualMap missing reflective export");
         ::DeleteFileA(temp_path.c_str());
 
         // ManualMap with missing payload should fail with PAYLOAD_NOT_FOUND.
@@ -344,6 +376,29 @@ int main()
         status = call_inject(sc_ok, sc_ok_result);
         expect_true(status == 0, "Shellcode with payload should succeed");
         expect_true(sc_ok_result.success != 0, "Shellcode success flag");
+
+        // Shellcode with entryOffset should succeed.
+        rw_injection_request sc_offset_ok = sc_ok;
+        sc_offset_ok.technique_parameters_json = R"({"entryOffset":1})";
+        rw_injection_result sc_offset_ok_result{};
+        status = call_inject(sc_offset_ok, sc_offset_ok_result);
+        expect_true(status == 0, "Shellcode with entryOffset should succeed");
+
+        // Shellcode with invalid entryOffset should fail.
+        rw_injection_request sc_offset_bad = sc_ok;
+        sc_offset_bad.technique_parameters_json = R"({"entryOffset":999})";
+        rw_injection_result sc_offset_bad_result{};
+        status = call_inject(sc_offset_bad, sc_offset_bad_result);
+        expect_true(status != 0, "Shellcode invalid entryOffset should fail");
+        expect_equal(sc_offset_bad_result.error_code, "TECHNIQUE_PARAM_INVALID", "Shellcode invalid entryOffset");
+
+        // Shellcode with negative entryOffset should fail.
+        rw_injection_request sc_offset_negative = sc_ok;
+        sc_offset_negative.technique_parameters_json = R"({"entryOffset":-1})";
+        rw_injection_result sc_offset_negative_result{};
+        status = call_inject(sc_offset_negative, sc_offset_negative_result);
+        expect_true(status != 0, "Shellcode negative entryOffset should fail");
+        expect_equal(sc_offset_negative_result.error_code, "TECHNIQUE_PARAM_INVALID", "Shellcode negative entryOffset");
         ::DeleteFileA(temp_sc_path.c_str());
 
         // ReflectiveDll missing payload should fail.
@@ -357,15 +412,15 @@ int main()
         expect_true(status != 0, "ReflectiveDll missing payload should fail");
         expect_equal(rdi_missing_result.error_code, "PAYLOAD_NOT_FOUND", "ReflectiveDll missing payload");
 
-        // ReflectiveDll with existing file should succeed.
-        const std::string temp_rdi_path = make_temp_file("runewire_temp_rdi.dll", nullptr, 0);
+        // ReflectiveDll with existing file should fail without reflective export.
+        const std::string temp_rdi_path = make_temp_file("runewire_temp_rdi.dll", dummy_bytes, sizeof(dummy_bytes));
         rw_injection_request rdi_ok = rdi_missing;
         rdi_ok.payload_path = temp_rdi_path.c_str(); // use created file
         rdi_ok.technique_parameters_json = "{}";
         rw_injection_result rdi_ok_result{};
         status = call_inject(rdi_ok, rdi_ok_result);
-        expect_true(status == 0, "ReflectiveDll with payload should succeed");
-        expect_true(rdi_ok_result.success != 0, "ReflectiveDll success flag");
+        expect_true(status != 0, "ReflectiveDll without reflective export should fail");
+        expect_equal(rdi_ok_result.error_code, "REFLECTIVE_EXPORT_NOT_FOUND", "ReflectiveDll missing reflective export");
         ::DeleteFileA(temp_rdi_path.c_str());
 
         // ModuleStomping missing payload should fail.
@@ -379,14 +434,15 @@ int main()
         expect_true(status != 0, "ModuleStomping missing payload should fail");
         expect_equal(stomp_missing_result.error_code, "PAYLOAD_NOT_FOUND", "ModuleStomping missing payload");
 
-        // ModuleStomping with payload should succeed.
-        const std::string temp_stomp_path = make_temp_file("runewire_temp_stomp.dll", nullptr, 0);
+        // ModuleStomping with payload should reject self target.
+        const unsigned char stomp_bytes[] = { 0xC3 };
+        const std::string temp_stomp_path = make_temp_file("runewire_temp_stomp.dll", stomp_bytes, sizeof(stomp_bytes));
         rw_injection_request stomp_ok = stomp_missing;
         stomp_ok.payload_path = temp_stomp_path.c_str();
         rw_injection_result stomp_ok_result{};
         status = call_inject(stomp_ok, stomp_ok_result);
-        expect_true(status == 0, "ModuleStomping with payload should succeed");
-        expect_true(stomp_ok_result.success != 0, "ModuleStomping success flag");
+        expect_true(status != 0, "ModuleStomping self should fail");
+        expect_equal(stomp_ok_result.error_code, "TARGET_SELF_UNSUPPORTED", "ModuleStomping self target error");
         ::DeleteFileA(temp_stomp_path.c_str());
 
         // SharedSectionMap missing payload should fail.
@@ -401,7 +457,8 @@ int main()
         expect_equal(ssm_missing_result.error_code, "PAYLOAD_NOT_FOUND", "SharedSectionMap missing payload");
 
         // SharedSectionMap with payload should succeed.
-        const std::string temp_ssm_path = make_temp_file("runewire_temp_ssm.bin", nullptr, 0);
+        const unsigned char ssm_bytes[] = { 0xC3 };
+        const std::string temp_ssm_path = make_temp_file("runewire_temp_ssm.bin", ssm_bytes, sizeof(ssm_bytes));
         rw_injection_request ssm_ok = ssm_missing;
         ssm_ok.payload_path = temp_ssm_path.c_str();
         rw_injection_result ssm_ok_result{};

@@ -29,6 +29,7 @@ out/
 .env
 .vscode/
 *.opendb
-/tests/Runewire.Orchestrator.Tests/TestResults/b11ea113-dd2a-43a4-8e6e-2e43f27c2413/coverage.cobertura.xml
+tests/Runewire.Orchestrator.Tests/TestResults/
+TestResults/
 
 .fake

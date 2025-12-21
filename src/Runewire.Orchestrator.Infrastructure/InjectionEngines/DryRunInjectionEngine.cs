@@ -54,7 +54,20 @@ public sealed class DryRunInjectionEngine(TextWriter? output = null) : IInjectio
             RecipeTargetKind.Self => "self (current Runewire process)",
             RecipeTargetKind.ProcessById => $"PID {request.Target.ProcessId}",
             RecipeTargetKind.ProcessByName => $"process \"{request.Target.ProcessName}\"",
+            RecipeTargetKind.LaunchProcess => DescribeLaunchTarget(request.Target),
             _ => $"unknown target kind {request.Target.Kind}",
         };
+    }
+
+    private static string DescribeLaunchTarget(RecipeTarget target)
+    {
+        string path = string.IsNullOrWhiteSpace(target.LaunchPath) ? "<missing path>" : target.LaunchPath;
+        string args = string.IsNullOrWhiteSpace(target.LaunchArguments) ? string.Empty : $" {target.LaunchArguments}";
+        string workingDir = string.IsNullOrWhiteSpace(target.LaunchWorkingDirectory)
+            ? string.Empty
+            : $" (cwd: {target.LaunchWorkingDirectory})";
+        string suspended = target.LaunchStartSuspended ? " (start suspended)" : string.Empty;
+
+        return $"launch \"{path}\"{args}{workingDir}{suspended}";
     }
 }

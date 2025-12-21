@@ -293,6 +293,45 @@ public sealed class RecipeValidateCommandTests
     }
 
     [Fact]
+    public async Task Validate_launch_target_with_missing_working_directory_fails()
+    {
+        string payloadPath = CLITestHarness.CreateTempPayloadFile();
+        string launchPath = Path.Combine(Path.GetTempPath(), $"runewire-launch-{Guid.NewGuid():N}.exe");
+        string missingDir = Path.Combine(Path.GetTempPath(), $"runewire-missing-{Guid.NewGuid():N}");
+
+        File.WriteAllText(launchPath, "stub");
+
+        string yaml = $"""
+            name: missing-launch-workdir
+            target:
+              kind: launchProcess
+              path: {launchPath}
+              workingDirectory: {missingDir}
+            technique:
+              name: CreateRemoteThread
+            payload:
+              path: {payloadPath}
+            safety:
+              requireInteractiveConsent: true
+              allowKernelDrivers: false
+            """;
+
+        try
+        {
+            string recipePath = CLITestHarness.CreateTempRecipeFile("runewire-validate-launch-workdir", yaml);
+
+            (int exitCode, string output) = await CLITestHarness.RunWithCapturedOutputAsync(RecipeValidateCommand.CommandName, recipePath);
+
+            Assert.Equal(1, exitCode);
+            Assert.Contains("TARGET_LAUNCH_WORKDIR_NOT_FOUND", output);
+        }
+        finally
+        {
+            File.Delete(launchPath);
+        }
+    }
+
+    [Fact]
     public async Task Validate_wait_condition_missing_value_returns_error()
     {
         string payloadPath = CLITestHarness.CreateTempPayloadFile();
