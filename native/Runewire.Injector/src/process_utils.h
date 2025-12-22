@@ -13,3 +13,7 @@ struct dispatch_outcome;
 
 // Opens target process for injection operations. Returns current process handle for self-targets.
 HANDLE open_process_for_injection(const rw_injection_request* req, DWORD desired_access, dispatch_outcome& failure);
+
+#ifdef _WIN32
+bool get_is_wow64(HANDLE process, bool& is_wow64);
+#endif

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "handler_payloads.h"
+#include "handler_process.h"
 #include "handler_redirects.h"
 #include "handler_threads.h"
 #include "param_parser.h"
@@ -62,7 +63,7 @@ namespace
         { "Shellcode", handle_shellcode },
         { "ThreadHijack", handle_thread_hijack },
         { "EarlyBirdApc", handle_stubbed },
-        { "ProcessHollowing", handle_stubbed },
+        { "ProcessHollowing", handle_process_hollowing },
         { "ProcessDoppelganging", handle_stubbed },
         { "ProcessHerpaderping", handle_stubbed },
         { "ModuleStomping", handle_module_stomping },

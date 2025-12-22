@@ -31,5 +31,6 @@ out/
 *.opendb
 tests/Runewire.Orchestrator.Tests/TestResults/
 TestResults/
+.buildbouncer
 
 .fake

@@ -14,9 +14,14 @@ add_library(Runewire.Injector SHARED
     src/param_parser.cpp
     src/process_utils.cpp
     src/payload_utils.cpp
+    src/remote_memory.cpp
+    src/module_utils.cpp
+    src/ntdll_utils.cpp
+    src/pe_utils.cpp
     src/handler_threads.cpp
     src/thread_utils.cpp
     src/handler_payloads.cpp
+    src/handler_process.cpp
     src/handler_redirects.cpp
 )
 

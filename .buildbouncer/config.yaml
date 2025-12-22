@@ -1,23 +1,71 @@
 version: 1
+meta:
+    template:
+        id: dotnet
+    inputs:
+        template.id: dotnet
 checks:
-    - name: tests
+    - id: template:dotnet:eb072a8eb681
+      source: template:dotnet
+      name: tests
       run: dotnet test -c Release
-    - name: format
+      shell: cmd
+      requires: dotnet
+    - id: template:dotnet:b11b0e6f21cb
+      source: template:dotnet
+      name: format
       run: dotnet format --verify-no-changes
-    - name: ci:build-test-coverage-native:.net-build-test-coverage:setup-.net
+      shell: cmd
+      requires: dotnet
+    - id: ci:build-test-coverage-native:4370d2ed6c8e
+      source: ci:build-test-coverage-native
+      name: ci:build-test-coverage-native:.net-build-test-coverage:setup-.net
       run: dotnet --version
-    - name: ci:build-test-coverage-native:.net-build-test-coverage:restore
+      shell: pwsh
+      os: windows
+      requires: dotnet
+    - id: ci:build-test-coverage-native:99022fe7be48
+      source: ci:build-test-coverage-native
+      name: ci:build-test-coverage-native:.net-build-test-coverage:restore
       run: dotnet restore
-    - name: ci:build-test-coverage-native:.net-build-test-coverage:build-release
+      shell: pwsh
+      os: windows
+      requires: dotnet
+    - id: ci:build-test-coverage-native:95d6513455bb
+      source: ci:build-test-coverage-native
+      name: ci:build-test-coverage-native:.net-build-test-coverage:build-release
       run: dotnet build --configuration Release --no-restore
-    - name: ci:build-test-coverage-native:.net-build-test-coverage:test-with-coverage
+      shell: pwsh
+      os: windows
+      requires: dotnet
+    - id: ci:build-test-coverage-native:13928fd0df0d
+      source: ci:build-test-coverage-native
+      name: ci:build-test-coverage-native:.net-build-test-coverage:test-with-coverage
       run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
-    - name: ci:build-test-coverage-native:native-injector-build-cmake-ninja:configure-cmake-debug
+      shell: pwsh
+      os: windows
+      requires: dotnet
+    - id: ci:build-test-coverage-native:8952c78df0d5
+      source: ci:build-test-coverage-native
+      name: ci:build-test-coverage-native:native-injector-build-cmake-ninja:configure-cmake-debug
       run: cmake -S native -B build/native -G "Ninja" -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON
-    - name: ci:build-test-coverage-native:native-injector-build-cmake-ninja:build-runewire.injector-debug
+      shell: pwsh
+      os: windows
+      requires: cmake
+    - id: ci:build-test-coverage-native:b50f03b467a3
+      source: ci:build-test-coverage-native
+      name: ci:build-test-coverage-native:native-injector-build-cmake-ninja:build-runewire.injector-debug
       run: cmake --build build/native --config Debug
-    - name: ci:build-test-coverage-native:native-injector-build-cmake-ninja:run-native-tests
+      shell: pwsh
+      os: windows
+      requires: cmake
+    - id: ci:build-test-coverage-native:8a1c7fd052b0
+      source: ci:build-test-coverage-native
+      name: ci:build-test-coverage-native:native-injector-build-cmake-ninja:run-native-tests
       run: ctest --test-dir build/native --output-on-failure
+      shell: pwsh
+      os: windows
+      requires: ctest
 insults:
     mode: snarky
     file: .buildbouncer/assets/insults/default.json

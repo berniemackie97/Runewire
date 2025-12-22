@@ -152,12 +152,40 @@ HANDLE open_process_for_injection(const rw_injection_request* req, DWORD desired
     return nullptr;
 }
 
+bool get_is_wow64(HANDLE process, bool& is_wow64)
+{
+    using IsWow64Process_t = BOOL(WINAPI*)(HANDLE, PBOOL);
+    static IsWow64Process_t is_wow64_process =
+        reinterpret_cast<IsWow64Process_t>(::GetProcAddress(::GetModuleHandleA("kernel32.dll"), "IsWow64Process"));
+
+    if (!is_wow64_process)
+    {
+        is_wow64 = false;
+        return true;
+    }
+
+    BOOL result = FALSE;
+    if (!is_wow64_process(process, &result))
+    {
+        return false;
+    }
+
+    is_wow64 = result != FALSE;
+    return true;
+}
+
 #else
 
 HANDLE open_process_for_injection(const rw_injection_request*, DWORD, dispatch_outcome& failure)
 {
     failure = { false, "TECHNIQUE_UNSUPPORTED_PLATFORM", "Native injector is not implemented on this platform." };
     return nullptr;
+}
+
+bool get_is_wow64(HANDLE, bool& is_wow64)
+{
+    is_wow64 = false;
+    return false;
 }
 
 #endif

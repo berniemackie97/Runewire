@@ -503,6 +503,28 @@ int main()
         expect_true(status != 0, "EarlyBirdCreateProcess empty commandLine");
         expect_equal(eb_empty_result.error_code, "TECHNIQUE_PARAM_REQUIRED", "EarlyBirdCreateProcess empty commandLine");
 
+        // ProcessHollowing missing targetImagePath should fail.
+        rw_injection_request hollow_missing = ok;
+        hollow_missing.technique_name = "ProcessHollowing";
+        hollow_missing.technique_parameters_json = "{}";
+        rw_injection_result hollow_missing_result{};
+        status = call_inject(hollow_missing, hollow_missing_result);
+        expect_true(status != 0, "ProcessHollowing missing target image should fail");
+        expect_equal(hollow_missing_result.error_code, "TECHNIQUE_PARAM_REQUIRED", "ProcessHollowing missing target image");
+
+        // ProcessHollowing missing target image should fail.
+        const unsigned char hollow_bytes[] = { 0x00 };
+        const std::string temp_hollow_path = make_temp_file("runewire_temp_hollow.bin", hollow_bytes, sizeof(hollow_bytes));
+        rw_injection_request hollow_missing_target = ok;
+        hollow_missing_target.technique_name = "ProcessHollowing";
+        hollow_missing_target.payload_path = temp_hollow_path.c_str();
+        hollow_missing_target.technique_parameters_json = R"({"targetImagePath":"C:\\\\runewire_missing_target.exe"})";
+        rw_injection_result hollow_missing_target_result{};
+        status = call_inject(hollow_missing_target, hollow_missing_target_result);
+        expect_true(status != 0, "ProcessHollowing missing target image should fail");
+        expect_equal(hollow_missing_target_result.error_code, "TARGET_IMAGE_NOT_FOUND", "ProcessHollowing missing target image");
+        ::DeleteFileA(temp_hollow_path.c_str());
+
         // Hook technique with missing params should fail.
         rw_injection_request hook_missing = ok;
         hook_missing.technique_name = "InlineHook";

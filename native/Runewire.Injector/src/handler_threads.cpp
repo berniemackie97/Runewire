@@ -1,7 +1,8 @@
 #include "handler_threads.h"
-#include "process_utils.h"
-#include "thread_utils.h"
 #include "payload_utils.h"
+#include "process_utils.h"
+#include "remote_memory.h"
+#include "thread_utils.h"
 
 #include <cstring>
 #include <string>
@@ -78,28 +79,6 @@ namespace
         return reinterpret_cast<NtContinue_t>(::GetProcAddress(ntdll, "NtContinue"));
     }
 
-    bool get_is_wow64(HANDLE process, bool& is_wow64)
-    {
-        using IsWow64Process_t = BOOL(WINAPI*)(HANDLE, PBOOL);
-        static IsWow64Process_t is_wow64_process =
-            reinterpret_cast<IsWow64Process_t>(::GetProcAddress(::GetModuleHandleA("kernel32.dll"), "IsWow64Process"));
-
-        if (!is_wow64_process)
-        {
-            is_wow64 = false;
-            return true;
-        }
-
-        BOOL result = FALSE;
-        if (!is_wow64_process(process, &result))
-        {
-            return false;
-        }
-
-        is_wow64 = result != FALSE;
-        return true;
-    }
-
     bool try_find_thread_for_process(DWORD pid, DWORD exclude_thread, DWORD& thread_id)
     {
         HANDLE snapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
@@ -131,48 +110,6 @@ namespace
         return false;
     }
 
-    void* alloc_target_memory(HANDLE process, size_t size, DWORD protect, bool is_self)
-    {
-        if (is_self)
-        {
-            return ::VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, protect);
-        }
-
-        return ::VirtualAllocEx(process, nullptr, size, MEM_COMMIT | MEM_RESERVE, protect);
-    }
-
-    void free_target_memory(HANDLE process, void* address, bool is_self)
-    {
-        if (!address)
-        {
-            return;
-        }
-
-        if (is_self)
-        {
-            ::VirtualFree(address, 0, MEM_RELEASE);
-        }
-        else
-        {
-            ::VirtualFreeEx(process, address, 0, MEM_RELEASE);
-        }
-    }
-
-    bool write_target_memory(HANDLE process, void* destination, const void* source, size_t size, bool is_self)
-    {
-        if (!destination || !source)
-        {
-            return false;
-        }
-
-        if (is_self)
-        {
-            std::memcpy(destination, source, size);
-            return true;
-        }
-
-        return ::WriteProcessMemory(process, destination, source, size, nullptr) != 0;
-    }
 }
 
 dispatch_outcome handle_create_remote_thread(const rw_injection_request* req, const parsed_params&)
