@@ -1,5 +1,7 @@
 # Runewire
 
+[![wakatime](https://wakatime.com/badge/user/dd1b4aee-71e4-41d0-a2d8-e1b2a0865b30/project/7c93c87e-ca3b-40b7-8175-7e469da6419b.svg)](https://wakatime.com/badge/user/dd1b4aee-71e4-41d0-a2d8-e1b2a0865b30/project/7c93c87e-ca3b-40b7-8175-7e469da6419b)
+
 Runewire is a process injection lab platform. It is for controlled, repeatable experiments on systems you own or are allowed to test. It is not a malware builder and not an AV bypass toolkit.
 
 The platform is split into clear layers so it stays testable and easy to extend as we add more techniques, agents, and front ends.
