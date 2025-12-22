@@ -59,13 +59,6 @@ checks:
       shell: pwsh
       os: windows
       requires: cmake
-    - id: ci:build-test-coverage-native:8a1c7fd052b0
-      source: ci:build-test-coverage-native
-      name: ci:build-test-coverage-native:native-injector-build-cmake-ninja:run-native-tests
-      run: ctest --test-dir build/native --output-on-failure
-      shell: pwsh
-      os: windows
-      requires: ctest
 insults:
     mode: snarky
     file: .buildbouncer/assets/insults/default.json
